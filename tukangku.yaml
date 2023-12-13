@@ -232,16 +232,15 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      $ref: '#/components/schemas/Workers'
+                    properties:
+                      message:
+                        type: string
+                        example: success
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/PaginatedResultWorker"
+                          - type: object
+                            $ref: '#/components/schemas/Workers'
         '400':
           description: bad request
           content:
@@ -760,6 +759,16 @@ components:
           example: image/joko.png
       xml:
         name: Workers
+    PaginatedResultWorker:
+      type: object
+      properties:
+        has_next: { type: boolean, example: false }
+        has_prev: { type: boolean, example: true }
+        page: { type: number, example: 1 }
+        pages: { type: number, example: 2 }
+        per_page: { type: number, example: 10 }
+        total: { type: number, example: 18 }
+        results: { type: array, items: {} }
   securitySchemes:
     petstore_auth:
       type: oauth2
