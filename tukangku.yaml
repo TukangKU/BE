@@ -1,351 +1,906 @@
 openapi: 3.0.0
 info:
   description: |
-    This is a sample Petstore server.  You can find
-    out more about Swagger at
-    [http://swagger.io](http://swagger.io) or on
-    [irc.freenode.net, #swagger](http://swagger.io/irc/).
+    This is a sample Sosmed server.
   version: "1.0.0"
-  title: Swagger Petstore
-  termsOfService: 'http://swagger.io/terms/'
+  title: TukangKu
   contact:
-    email: apiteam@swagger.io
+    email: mhafidz.hidayat@gmail.com
   license:
     name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 servers:
   # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
+  # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/MHAFIDZHIDAYAT_1/aaaa/1.0.0
-  - url: 'https://petstore.swagger.io/v2'
+    url: https://virtserver.swaggerhub.com/be-tukangku/tukangku/1.0.0
+  - url: "https://petstore.swagger.io/v2"
 tags:
-  - name: pet
-    description: Everything about your Pets
-    externalDocs:
-      description: Find out more
-      url: 'http://swagger.io'
-  - name: store
-    description: Access to Petstore orders
-  - name: user
-    description: Operations about user
-    externalDocs:
-      description: Find out more about our store
-      url: 'http://swagger.io'
+  - name: Auth
+    description: login client and pekerja
+  - name: Clients
+    description: Operations about Client
+  - name: Workers
+    description: Operations about Worker
+  - name: Skills
+    description: skills of worker 
+  - name: Jobs
+    description: Jobs operations
+  - name: Payments
+  - name: Notifications
+
 paths:
-  
-  /user:
+
+  /register:
     post:
       tags:
-        - user
-      summary: Create user
-      description: This can only be done by the logged in user.
-      operationId: createUser
-      responses:
-        default:
-          description: successful operation
+        - Auth
+      summary: "Register"
       requestBody:
+        $ref: "#/components/requestBodies/register"
+      responses:
+        "201":
+          description: register successful
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "register successful"
+                  data:
+                    user_id: 1
+                    role: "worker"
+                    username: "bedul1"
+                    email: "bedul@gmail.com"
+        "400":
+          $ref: "#/components/responses/400"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+
+  /login:
+    post:
+      tags:
+        - Auth
+      summary: "Login"
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
-        description: Created user object
-        required: true
-  /user/createWithArray:
-    post:
-      tags:
-        - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithArrayInput
+              $ref: "#/components/schemas/loginReq"
       responses:
-        default:
-          description: successful operation
-      requestBody:
-        $ref: '#/components/requestBodies/UserArray'
-  /user/createWithList:
-    post:
-      tags:
-        - user
-      summary: Creates list of users with given input array
-      operationId: createUsersWithListInput
-      responses:
-        default:
-          description: successful operation
-      requestBody:
-        $ref: '#/components/requestBodies/UserArray'
-  /user/login:
-    get:
-      tags:
-        - user
-      summary: Logs user into the system
-      operationId: loginUser
-      parameters:
-        - name: username
-          in: query
-          description: The user name for login
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: query
-          description: The password for login in clear text
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          headers:
-            X-Rate-Limit:
-              description: calls per hour allowed by the user
-              schema:
-                type: integer
-                format: int32
-            X-Expires-After:
-              description: date in UTC when token expires
-              schema:
-                type: string
-                format: date-time
+        "201":
+          description: login successful
           content:
             application/json:
               schema:
-                type: string
-            application/xml:
-              schema:
-                type: string
-        '400':
-          description: Invalid username/password supplied
-  /user/logout:
+                type: object
+                example:
+                  message: "login successful"
+                  data:
+                    username: "bedul1"
+                    email: "bedul@gmail.com"
+                    image: "/image/user/foto1.png"
+                    token: "ierwiehfsdfsnewoueyrwygejkdbfsejhsbdjbfse"
+        "400":
+          $ref: "#/components/responses/400"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+#client
+
+  /clients/{id}:
     get:
       tags:
-        - user
-      summary: Logs out current logged in user session
-      operationId: logoutUser
-      responses:
-        default:
-          description: successful operation
-  '/user/{username}':
-    get:
-      tags:
-        - user
-      summary: Get user by user name
-      operationId: getUserByName
+        - Clients
+      summary: Get clients by id
+      description: This can only be done by the logged in user.
+      operationId: getCliensById
       parameters:
-        - name: username
+        - name: id
           in: path
-          description: The name that needs to be fetched. Use user1 for testing.
+          description: 'The id that needs to be fetched. Use 2 for testing. '
           required: true
           schema:
-            type: string
+            type: integer
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: successful operation
+          description: success response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
+              example:
+                message: "success"
+                data:
+                  user_id: 2
+                  username: "joko999"
+                  name: "Joko Waluyo"
+                  email: "joko.binangun@gmail.com"
+                  phone: "085235375985"
+                  address: "Jl. Merdeka No.12"
+                  image: "/image/user/foto2.png"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
     put:
       tags:
-        - user
-      summary: Updated user
-      description: This can only be done by the logged in user.
-      operationId: updateUser
+        - Clients
+      summary: "Update client by client_id"
       parameters:
-        - name: username
-          in: path
-          description: name that need to be updated
+        - in: path
+          name: id
           required: true
           schema:
-            type: string
-      responses:
-        '400':
-          description: Invalid user supplied
-        '404':
-          description: User not found
+            type: integer
+          example: 2
+      security:
+        - bearerAuth: []
       requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-        description: Updated user object
-        required: true
+        $ref: "#/components/requestBodies/updateClient"
+      responses:
+        "200":
+          description: "update user successful"
+          content:
+            application/json:
+              example:
+                message: "update user successful"
+                data:
+                  user_id: 2
+                  username: "joko999"
+                  name: "Joko Waluyo"
+                  email: "joko.binangun@gmail.com"
+                  phone: "085235375985"
+                  address: "Jl. Merdeka No.12"
+                  image: "/image/user/foto2.png"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
     delete:
       tags:
-        - user
-      summary: Delete user
-      description: This can only be done by the logged in user.
-      operationId: deleteUser
+        - Clients
+      summary: Delete client profile
+      description: This can only be done by the logged in client.
+      operationId: deleteClient
       parameters:
-        - name: username
+        - name: id
           in: path
-          description: The name that needs to be deleted
+          description: id of client that need to be deleted
           required: true
           schema:
-            type: string
+            type: integer
+      security:
+        - bearerAuth: []
       responses:
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-externalDocs:
-  description: Find out more about Swagger
-  url: 'http://swagger.io'
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              example:
+                message: "user successfully deleted"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+# worker
+
+
+  /workers/{id}:
+    get:
+      tags:
+        - Workers
+      summary: Get worker by id
+      description: This can only be done by the logged in user.
+      operationId: getWorkerById
+      parameters:
+        - name: id
+          in: path
+          description: 'The id that needs to be fetched. Use 1 for testing. '
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: success response
+          content:
+            application/json:
+              example:
+                message: "success"
+                data:
+                  user_id: 1
+                  username: "bedul1"
+                  name: "Bedul Markedul"
+                  email: "bedulganteng@gmail.com"
+                  phone: "0898456123745"
+                  address: "Jl. Aja Dulu"
+                  skills: {}
+                  image: "/image/user/foto2.png"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    put:
+      tags:
+        - Workers
+      summary: "Update worker by worker_id"
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          example: 1
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/updateWorker"
+      responses:
+        "200":
+          description: "update user successful"
+          content:
+            application/json:
+              example:
+                message: "update user successful"
+                data:
+                  user_id: 1
+                  username: "bedul1"
+                  name: "bedul"
+                  skill: 
+                    - skill_id: 1
+                      skill_name: "Service AC"
+                    - skill_id: 2
+                      skill_name: "Cleaning" 
+                  email: "bedul@gmail.com"
+                  phone: "0897894156452"
+                  image: "/image/user/foto1.png"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+    delete:
+      tags:
+        - Workers
+      summary: Delete worker profile
+      description: This can only be done by the logged in worker.
+      operationId: deleteWorker
+      parameters:
+        - name: id
+          in: path
+          description: id of worker that need to be deleted
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              example:
+                message: "user successfully deleted"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /workers:
+    get:
+      tags:
+        - Workers
+      summary: get worker by skill 
+      parameters:
+        - in: query
+          name: skill
+          required: true
+          schema: 
+            type: integer
+          example: 1
+        - in: query
+          name: page
+          required: false
+          schema: 
+            type: integer
+          example: 1
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: get worker by skill 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "get worker by skill"
+                  data: [{
+                    worker_id: 1,
+                    worker_name: "Bedul Markedul",
+                    address: "jln. aja dulu",
+                    jobs: [
+                      {job_date: "2023-08-19",
+                       category: "Service AC",
+                      },
+                      {job_date: "2023-07-30",
+                       category: "Cleaning",
+                      },
+                      ],
+                    skill: [
+                     {skill_id: 1,
+                      skill_name: "Service AC",},
+                      {skill_id: 2,
+                      skill_name: "Cleaning",}],
+                    },
+                    {
+                    worker_id: 3,
+                    worker_name: "Robert J Openheimer",
+                    alamat: "Jl. Manhattan Project",
+                    jobs: [
+                      {job_date: "2023-05-21",
+                       category: "Service AC",
+                      },
+                      {job_date: "2023-06-30",
+                       category: "CCTV",}
+                       ],
+                    skill: [
+                      {skill_id: 1,
+                      skill_name: "Service AC",},
+                      {skill_id: 5,
+                      skill_name: "CCTV",},],
+                      
+                    },
+                      ]
+                  pagination:
+                    page: 1
+                    totalTotal: 10
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+
+
+
+
+
+
+
+
+
+# skill
+
+  /skills:
+    post:
+      tags:
+        - Skills
+      summary: add skill 
+      requestBody:
+            $ref: "#/components/requestBodies/addSkill"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: "add skill" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "success add skill" 
+                  data: 
+                    skill_id: 1
+                    skill_name: "Service AC" 
+                    harga: 150000
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+      deprecated: true
+
+
+
+    get:
+      tags:
+        - Skills 
+      summary: "get all skills" 
+      security:
+        - bearerAuth: []
+      responses:      
+        "200":
+          description: get all skills 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "get all skills successful"
+                  data: 
+                  - skill_id: 1
+                    skill_name: "Service AC" 
+                  - skill_id: 2
+                    skill_name: "Cleaning" 
+                  - skill_id: 3
+                    skill_name: "Plumber" 
+                  - skill_id: 4
+                    skill_name: "Decoration" 
+                  - skill_id: 5
+                    skill_name: "CCTV" 
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+
+##Jobs
+  /jobs:
+    post: 
+      tags:
+        - Jobs
+      summary: "create Job Request"
+      requestBody:
+          $ref: "#/components/requestBodies/addJobDetail"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: "create job detail" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example: 
+                  message: "Job request created!" 
+                  data: 
+                    job_id: 1
+                    worker_name: "Bedul Markedul"
+                    client_name: "Peter Jordanson"
+                    category: "Service AC"
+                    start_date: "2023-12-14"
+                    end_date: "2023-12-15"
+                    price: 
+                    deskripsi: "Sy mau pasang AC baru untuk satu kamar" 
+                    reply: []
+                    status: "pending"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    put: 
+      tags:
+        - Jobs
+      summary: "this operation enables negotiations between worker and client"
+      requestBody:
+          $ref: "#/components/requestBodies/putJobReq"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "success" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example: 
+                  message: "success" 
+                  data: 
+                    job_id: 1
+                    worker_name: "Bedul Markedul"
+                    client_name: "Peter Jordanson"
+                    category: "Service AC"
+                    start_date: "2023-12-14"
+                    end_date: "2023-12-15"
+                    price: 300000
+                    description: "Sy mau pasang AC baru untuk satu kamar" 
+                    status: "accepted"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+    get:
+      tags:
+        - Jobs
+      summary: "get all jobs by user_id, could be filtered by status" 
+      parameters:
+        - in: query
+          name: status 
+          required: true
+          schema: 
+            type: string
+          example: "accepted"
+      security:
+        - bearerAuth: [] 
+      responses:
+        "200": 
+          description: "get all job by status" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "get all job by status" 
+                  data: 
+                  - worker_name: "bedul"
+                    start_date: "2023-12-15"
+                    end_date: "2023-12-16"
+                    price: 150000
+                    deskripsi: "ditunggu ya mas"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: "get all job by jobs_id" 
+      parameters:
+        - in: path
+          name: id 
+          required: true
+          schema: 
+            type: integer
+          example: 1
+      security:
+        - bearerAuth: [] 
+      responses:
+        "200": 
+          description: "get all job by status" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "get all job by status" 
+                  data: 
+                  - worker_name: "bedul"
+                    start_date: "2023-12-15"
+                    end_date: "2023-12-16"
+                    price: 150000
+                    deskripsi: "ditunggu ya mas"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    
+    ##Notifs
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: "get all notifications" 
+      parameters:
+        - in: path
+          name: status 
+          required: true
+          schema: 
+            type: string
+          example: "accepted"
+      security:
+        - bearerAuth: [] 
+      responses:
+        "200": 
+          description: "get all notifs by user_id:" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "get all job by status" 
+                  data: [
+                    {id: 56,
+                     message: "Request diubah oleh client: Peter Jordanson. Harap cek penawaran terkait."  ,
+                     created_at: 2023-12-08 16:40:20.92 +0700 +07,
+                    },
+                    {id: 55,
+                     message: "Request diubah oleh client: Peter Jordanson. Harap cek penawaran terkait."  ,
+                     created_at: 2023-12-08 16:38:20.92 +0700 +07,
+                    },
+                    {id: 45,
+                     message: Anda memiliki request baru!,
+                     created_at: 2023-12-08 16:35:20.92 +0700 +07,
+                    },
+                  ]
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+
+
+
+
 components:
   schemas:
-    Order:
+    loginReq:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        petId:
-          type: integer
-          format: int64
-        quantity:
-          type: integer
-          format: int32
-        shipDate:
-          type: string
-          format: date-time
-        status:
-          type: string
-          description: Order Status
-          enum:
-            - placed
-            - approved
-            - delivered
-        complete:
-          type: boolean
-          default: false
-      xml:
-        name: Order
-    Category:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: Category
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        username:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
         email:
           type: string
         password:
           type: string
-        phone:
-          type: string
-        userStatus:
-          type: integer
-          format: int32
-          description: User Status
-      xml:
-        name: User
-    Tag:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: Tag
-    Pet:
+      example:
+        email: bedul1
+        password: bedulganteng
+
+    registerReq:
       type: object
       required:
-        - name
-        - photoUrls
+        - "username"
+        - "email"
+        - "password"
+        - "role"
       properties:
-        id:
-          type: integer
-          format: int64
-        category:
-          $ref: '#/components/schemas/Category'
-        name:
+        username:
           type: string
-          example: doggie
-        photoUrls:
-          type: array
-          xml:
-            name: photoUrl
-            wrapped: true
-          items:
-            type: string
-        tags:
-          type: array
-          xml:
-            name: tag
-            wrapped: true
-          items:
-            $ref: '#/components/schemas/Tag'
-        status:
+          example: "bedul1"
+        email:
           type: string
-          description: pet status in the store
+          example: "bedul@gmail.com"
+        password:
+          type: string
+          example: "bedulganteng"
+        role:
+          type: string
           enum:
-            - available
-            - pending
-            - sold
-      xml:
-        name: Pet
-    ApiResponse:
+            - worker
+            - client
+
+    clientUpdateReq:
       type: object
       properties:
-        code:
+        username:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        image:
+          type: string
+          format: binary
+
+    workerUpdateReq:
+      type: object
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        skill:
+          type: array
+          items:
+            type: integer
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        image:
+          type: string
+          format: binary
+
+
+    addSkillReq:
+      type: object
+      required:
+        - "skill_name"
+        - "harga"
+      properties:
+        skill_name:
+          type: string
+          example: "service ac"
+
+
+    addJobDetailReq:
+      type: object
+      properties:
+        worker_name:
+          type: string
+        category: 
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate: 
+          type: string
+          format: date
+        deskripsi: 
+          type: string
+
+    skill:
+      type: object
+      properties:
+        skill_id:
+         type: integer
+        skill_name: 
+          type: string
+
+
+    putJobReq:
+      type: object
+      properties:
+        description:
+          type: string
+        price:
           type: integer
-          format: int32
-        type:
+          example: 300000
+        status: 
           type: string
-        message:
-          type: string
+          enum:
+          - accepted
+          - rejected
+
+
+
   requestBodies:
-    Pet:
+    register:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Pet'
-        application/xml:
+            $ref: "#/components/schemas/registerReq"
+
+    updateClient:
+      content:
+        multipart/form-data:
           schema:
-            $ref: '#/components/schemas/Pet'
-      description: Pet object that needs to be added to the store
-      required: true
-    UserArray:
+            $ref: "#/components/schemas/clientUpdateReq"
+
+    updateWorker:
+      content:
+        multipart/form-data:
+          schema:
+            $ref: "#/components/schemas/workerUpdateReq"
+
+    addSkill:
       content:
         application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/User'
-      description: List of user object
-      required: true
+          schema: 
+            $ref: "#/components/schemas/addSkillReq"
+
+    addJobDetail: 
+      content:
+        application/json:
+          schema: 
+            $ref: "#/components/schemas/addJobDetailReq"
+
+    putJobReq:
+      content:
+        application/json:
+          schema: 
+            $ref: "#/components/schemas/putJobReq"
+
   securitySchemes:
-    petstore_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'http://petstore.swagger.io/oauth/dialog'
-          scopes:
-            'write:pets': modify pets in your account
-            'read:pets': read your pets
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    "400":
+      description: "bad request"
+      content:
+        application/json:
+          example:
+            message: "bad request"
+    "401":
+      description: "unauthorized"
+      content:
+        application/json:
+          example:
+            message: "unauthorized"
+    "404":
+      description: "not found"
+      content:
+        application/json:
+          example:
+            message: "not found"
+    "405":
+      description: "method not allowed"
+      content:
+        application/json:
+          example:
+            message: "method not allowed"
+    "500":
+      description: "internal server error"
+      content:
+        application/json:
+          example:
+            message: "internal server error"
