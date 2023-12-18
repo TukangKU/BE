@@ -1,7 +1,10 @@
 package model
 
 import (
+	"errors"
+	"fmt"
 	"tukangku/features/jobs"
+	"tukangku/features/skill/repository"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +21,21 @@ type JobModel struct {
 	Status    string
 }
 
+type UserModel struct {
+	gorm.Model
+	Nama     string
+	UserName string
+	Password string
+	Email    string
+	NoHp     string
+	Alamat   string
+	Foto     string
+	Role     string
+	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
+	// Category []model.SkillModel `gorm:"foreignKey:Skill"`
+	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
+}
+
 type jobQuery struct {
 	db *gorm.DB
 }
@@ -29,17 +47,17 @@ func New(db *gorm.DB) jobs.Repository {
 }
 
 func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
-	var input = JobModel{
-		WorkerID:  newJobs.WorkerID,
-		ClientID:  newJobs.ClientID,
-		Category:  newJobs.Category,
-		StartDate: newJobs.StartDate,
-		EndDate:   newJobs.EndDate,
+	var input = new(JobModel)
 
-		Price:     0,
-		Deskripsi: newJobs.Deskripsi,
-		Status:    "pending",
-	}
+	input.WorkerID = newJobs.WorkerID
+	input.ClientID = newJobs.ClientID
+	input.Category = newJobs.Category
+	input.StartDate = newJobs.StartDate
+	input.EndDate = newJobs.EndDate
+
+	input.Price = 0
+	input.Deskripsi = newJobs.Deskripsi
+	input.Status = "pending"
 
 	if err := jq.db.Create(&input).Error; err != nil {
 		return jobs.Jobs{}, err
@@ -47,7 +65,26 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	// bikin notif dulu
 
 	// ngambil data dari repo untuk dikembalikan
-	newJobs.ID = input.ID
-
-	return newJobs, nil
+	var worker = new(UserModel)
+	result := jq.db.Where("id = ?", newJobs.WorkerID).First(&worker)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan worker")
+	}
+	fmt.Println(input.ID)
+	fmt.Println(worker)
+	var response = jobs.Jobs{
+		ID:         input.ID,
+		WorkerID:   input.WorkerID,
+		WorkerName: worker.Nama,
+		ClientID:   input.ClientID,
+		Category:   input.Category,
+		StartDate:  input.StartDate,
+		EndDate:    input.EndDate,
+		Price:      input.Price,
+		Deskripsi:  input.Deskripsi,
+		Status:     input.Status,
+	}
+	fmt.Println(response.ID)
+	fmt.Println(response.WorkerName)
+	return response, nil
 }
