@@ -39,6 +39,7 @@ func (ur *userQuery) Register(newUser users.Users) (users.Users, error) {
 	input.Email = newUser.Email
 	input.Password = newUser.Password
 	input.Role = newUser.Role
+	input.Foto = "https://res.cloudinary.com/daxpcsncf/image/upload/v1702888962/mfgsrgdlsguqjoskujib.png"
 
 	if err := ur.db.Create(&input).Error; err != nil {
 		return users.Users{}, err
