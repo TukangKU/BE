@@ -38,3 +38,21 @@ type UserUpdate struct {
 	Role     string `json:"role" form:"role"`
 	Skills   []uint `json:"skill" form:"skill"`
 }
+
+type UserResponse struct {
+	ID       uint      `json:"id" form:"id"`
+	UserName string    `json:"username" form:"username"`
+	Nama     string    `json:"nama" form:"nama"`
+	Email    string    `json:"email" form:"email"`
+	NoHp     string    `json:"nohp" form:"nohp"`
+	Alamat   string    `json:"alamat" form:"alamat"`
+	Foto     string    `json:"foto" form:"foto"`
+	Role     string    `json:"role" form:"role"`
+	// Skills   UserSkill `json:"skills" form:"skills"`
+	Skill    []string  `json:"skill" form:"skill"`
+}
+
+type UserSkill struct {
+	SkillID   uint   `json:"skill_id"`
+	NamaSKill string `json:"skill"`
+}

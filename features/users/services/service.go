@@ -66,7 +66,6 @@ func (ul *userService) Login(email string, password string) (users.Users, error)
 	return result, nil
 }
 
-// UpdateUser implements users.Service.
 func (us *userService) UpdateUser(idUser uint, updateWorker users.Users) (users.Users, error) {
 	result, err := us.repo.UpdateUser(idUser, updateWorker)
 	if err != nil {
@@ -75,5 +74,17 @@ func (us *userService) UpdateUser(idUser uint, updateWorker users.Users) (users.
 		}
 		return users.Users{}, errors.New("failed to update user")
 	}
+	return result, nil
+}
+
+func (gu *userService) GetUserByID(idUser uint) (users.Users, error) {
+	result, err := gu.repo.GetUserByID(idUser)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return users.Users{}, errors.New("user not found")
+		}
+		return users.Users{}, errors.New("error retrieving User by ID")
+	}
+
 	return result, nil
 }

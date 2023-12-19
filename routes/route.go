@@ -28,6 +28,7 @@ func routeUser(e *echo.Echo, uh users.Handler) {
 	e.POST("/login", uh.Login())
 	e.PUT("/client/:id", uh.UpdateUser(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
 	e.PUT("/worker/:id", uh.UpdateUser(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("user/:id", uh.GetUserByID(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
 }
 
 func routeSkill(e *echo.Echo, us skill.Handler) {
