@@ -30,9 +30,13 @@ func (at *TransactionService) AddTransaction(token *golangjwt.Token, JobID uint,
 	return result, err
 }
 
-
-
 func (ct *TransactionService) CheckTransaction(transactionID uint) (transaction.Transaction, error) {
 	result, err := ct.repo.CheckTransaction(transactionID)
+	return *result, err
+}
+
+
+func (cb *TransactionService) CallBack(noInvoice string) (transaction.TransactionList, error) {
+	result, err := cb.repo.CallBack(noInvoice)
 	return *result, err
 }
