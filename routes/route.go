@@ -2,6 +2,7 @@ package routes
 
 import (
 	"tukangku/features/jobs"
+	"tukangku/features/notifications"
 	"tukangku/features/skill"
 	"tukangku/features/users"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler) {
+func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler, nh notifications.Handler) {
 
 	// e.Use(mdd.CORS())
 	// e.Use(mdd.Logger())
@@ -20,6 +21,7 @@ func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler)
 	routeUser(e, uh)
 	routeSkill(e, us)
 	routeJobs(e, jh)
+	routeNotifs(e, nh)
 
 }
 
@@ -37,4 +39,8 @@ func routeSkill(e *echo.Echo, us skill.Handler) {
 
 func routeJobs(e *echo.Echo, jh jobs.Handler) {
 	e.POST("/jobs", jh.Create(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+}
+
+func routeNotifs(e *echo.Echo, nh notifications.Handler) {
+	e.GET("/notifications", nh.GetNotifs(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
 }
