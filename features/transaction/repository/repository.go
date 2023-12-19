@@ -103,7 +103,7 @@ func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.T
 
 func (cb *TransactionQuery) CallBack(noInvoice string) (*transaction.TransactionList, error) {
 	var transactions Transaction
-	if err := cb.db.Table("transactions").Where("NoInvoice = ?", noInvoice).Find(&transactions).Error; err != nil {
+	if err := cb.db.Table("transactions").Where("no_invoice = ?", noInvoice).Find(&transactions).Error; err != nil {
 		return nil, err
 	}
 
