@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"tukangku/features/transaction"
 	"tukangku/helper/midtrans"
@@ -41,9 +42,12 @@ func (at *TransactionQuery) AddTransaction(userID uint, JobID uint, JobPrice uin
 	}
 
 	var id = strconv.Itoa(int(input.ID))
-	input.NoInvoice = "ORDER-TUKANGKU-ID-" + id
+	input.NoInvoice = "TUKANGKU-ID-" + id
 
 	midtrans := midtrans.MidtransCreateToken(int(input.ID), int(JobPrice))
+
+	fmt.Println("Redirect URL:", midtrans.RedirectURL)
+    fmt.Println("Token:", midtrans.Token)
 
 	input.Url = midtrans.RedirectURL
 	input.Token = midtrans.Token
@@ -104,7 +108,8 @@ func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.T
 func (cb *TransactionQuery) CallBack(noInvoice string) (*transaction.TransactionList, error) {
 	var transactions Transaction
 	if err := cb.db.Table("transactions").Where("no_invoice = ?", noInvoice).Find(&transactions).Error; err != nil {
-		return nil, err
+		fmt.Println("transactions = ", transactions)
+		return &transaction.TransactionList{}, err
 	}
 
 	if transactions.ID == 0 {
