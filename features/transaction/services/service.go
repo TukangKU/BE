@@ -45,5 +45,5 @@ func (cb *TransactionService) CallBack(noInvoice string) (transaction.Transactio
 	if result == nil {
 		return transaction.TransactionList{}, errors.New("result is nil")
 	}
-	return *result, nil
+	return *result, err
 }

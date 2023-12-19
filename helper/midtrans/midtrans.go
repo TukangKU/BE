@@ -1,6 +1,7 @@
 package midtrans
 
 import (
+	"fmt"
 	"strconv"
 	"tukangku/config"
 
@@ -16,7 +17,7 @@ func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
 
 	req := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  "ORDER-TUKANGKU-ID-" + id,
+			OrderID:  "TUKANGKU-ID-" + id,
 			GrossAmt: int64(TotalPrice),
 		},
 		CreditCard: &snap.CreditCardDetails{
@@ -25,6 +26,7 @@ func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
 	}
 
 	snapResp, _ := s.CreateTransaction(req)
+	fmt.Println("sanpresponse = ", snapResp)
 	return snapResp
 }
 
