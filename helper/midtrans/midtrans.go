@@ -16,7 +16,7 @@ func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
 
 	req := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  "YOUR-ORDER-ID-" + id,
+			OrderID:  "ORDER-TUKANGKU-ID-" + id,
 			GrossAmt: int64(TotalPrice),
 		},
 		CreditCard: &snap.CreditCardDetails{
@@ -28,13 +28,13 @@ func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
 	return snapResp
 }
 
-func MidtransStatus(orderID int) (Status string) {
+func MidtransStatus(orderID string) (Status string) {
 	var c = coreapi.Client{}
 	c.New(config.InitConfig().MIDTRANS_SERVER_KEY, midtrans.Sandbox)
-	id := strconv.Itoa(orderID)
-	orderId := "YOUR-ORDER-ID-" + id
+	// id := strconv.Itoa(orderID)
+	// orderId := "YOUR-ORDER-ID-" + id
 
-	transactionStatusResp, e := c.CheckTransaction(orderId)
+	transactionStatusResp, e := c.CheckTransaction(orderID)
 	if e != nil {
 		status := "Pending"
 		return status

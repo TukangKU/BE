@@ -6,10 +6,15 @@ type TransactionReq struct {
 }
 
 type TransactionRes struct {
-	ID       uint `json:"transaction_id"`
-	JobID    uint `json:"job_id"`
-	JobPrice uint `json:"job_price"`
-	Status   string `json:"status"`
-	Token    string `json:"token"`
-	Url      string `json:"url"`
+	ID        uint   `json:"transaction_id"`
+	NoInvoice string `json:"no_invoice"`
+	JobID     uint   `json:"job_id"`
+	JobPrice  uint   `json:"job_price"`
+	Status    string `json:"status"`
+	Token     string `json:"token"`
+	Url       string `json:"url"`
+}
+
+type CallBack struct {
+	NoInvoice string `json:"no_invoice"`
 }
