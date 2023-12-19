@@ -8,15 +8,16 @@ import (
 )
 
 type AppConfig struct {
-	DBUSER string
-	DBHOST string
-	DBPASS string
-	DBNAME string
-	DBPORT uint16
+	DBUSER            string
+	DBHOST            string
+	DBPASS            string
+	DBNAME            string
+	DBPORT            uint16
 	CLOUDINARY_CLD    string
 	CLOUDINARY_KEY    string
 	CLOUDINARY_SECRET string
 	CLOUDINARY_FOLDER string
+	MIDTRANS_SERVER_KEY      string
 }
 
 func InitConfig() *AppConfig {
@@ -104,6 +105,10 @@ func readEnv() *AppConfig {
 	} else {
 		permit = false
 	}
-
+	if val, found := os.LookupEnv("MIDTRANS_SERVER_KEY"); found {
+		data.MIDTRANS_SERVER_KEY = val
+	} else {
+		permit = false
+	}
 	return data
 }

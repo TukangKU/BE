@@ -4,13 +4,14 @@ import (
 	"tukangku/features/jobs"
 	"tukangku/features/skill"
 	"tukangku/features/users"
+	"tukangku/features/transaction"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler) {
+func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler, th transaction.Handler) {
 
 	// e.Use(mdd.CORS())
 	// e.Use(mdd.Logger())
@@ -20,6 +21,7 @@ func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler)
 	routeUser(e, uh)
 	routeSkill(e, us)
 	routeJobs(e, jh)
+	routeTransaction(e, th)
 
 }
 
@@ -38,4 +40,9 @@ func routeSkill(e *echo.Echo, us skill.Handler) {
 
 func routeJobs(e *echo.Echo, jh jobs.Handler) {
 	e.POST("/jobs", jh.Create(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+}
+
+func routeTransaction(e *echo.Echo, th transaction.Handler){
+	e.POST("/transaction", th.AddTransaction(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("/transaction/:id", th.CheckTransaction(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
 }

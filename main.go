@@ -10,6 +10,11 @@ import (
 	ur "tukangku/features/users/respository"
 	us "tukangku/features/users/services"
 	ek "tukangku/helper/enkrip"
+
+	th "tukangku/features/transaction/handler"
+	tr "tukangku/features/transaction/repository"
+	ts "tukangku/features/transaction/services"
+
 	"tukangku/routes"
 	cld "tukangku/utils/cloudinary"
 	"tukangku/utils/database"
@@ -36,7 +41,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal("tidak bisa start bro", err.Error())
 	}
-	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{})
+	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, &tr.Transaction{})
 
 	// config users features
 	enkrip := ek.New()
@@ -53,7 +58,11 @@ func main() {
 	jobServices := js.New(jobRepo)
 	jobHandler := jh.New(jobServices)
 
-	routes.InitRute(e, userHandler, skillHandler, jobHandler)
+	TransactionRepo := tr.New(db)
+	TransactionService := ts.New(TransactionRepo)
+	TransactionHandler := th.New(TransactionService)
+
+	routes.InitRute(e, userHandler, skillHandler, jobHandler, TransactionHandler)
 	e.Logger.Fatal(e.Start(":8000"))
 
 }
