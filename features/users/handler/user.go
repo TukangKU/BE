@@ -34,7 +34,6 @@ func New(s users.Service, cld *cloudinary.Cloudinary, ctx context.Context, uploa
 	}
 }
 
-// Register implements users.Handler.
 func (ur *userController) Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(RegisterRequest)
@@ -48,6 +47,30 @@ func (ur *userController) Register() echo.HandlerFunc {
 		inputProcess.Email = input.Email
 		inputProcess.Password = input.Password
 		inputProcess.Role = input.Role
+
+		if inputProcess.UserName == "" {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "masukkan username",
+			})
+		}
+
+		if inputProcess.Email == "" {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "masukkan email",
+			})
+		}
+
+		if inputProcess.Password == "" {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "masukkan password",
+			})
+		}
+
+		if inputProcess.Role == "" {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "masukkan role",
+			})
+		}
 
 		result, err := ur.srv.Register(*inputProcess)
 
@@ -74,7 +97,6 @@ func (ur *userController) Register() echo.HandlerFunc {
 	}
 }
 
-// Login implements users.Handler.
 func (ul *userController) Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(LoginRequest)
@@ -119,7 +141,6 @@ func (ul *userController) Login() echo.HandlerFunc {
 	}
 }
 
-// UpdateUser implements users.Handler.
 func (us *userController) UpdateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
@@ -162,7 +183,7 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 			input.Foto = link
 
 		}
-			
+
 		updatedCient := users.Users{
 			UserName: input.UserName,
 			Nama:     input.Nama,
@@ -186,19 +207,62 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 
 		result.Foto = link
 
-		var response = &UserUpdate{
-			UserName: result.UserName,
-			Nama:     result.Nama,
-			Email:    result.Email,
-			NoHp:     result.NoHp,
-			Alamat:   result.Alamat,
-			Foto:     result.Foto,
-			Role:     result.Role,
-			ID:       userID,
-		}
+		var response = new(UserResponse)
+		response.ID = result.ID
+		response.UserName = result.UserName
+		response.Nama = result.Nama
+		response.Email = result.Email
+		response.NoHp = result.NoHp
+		response.Alamat = result.Alamat
+		response.Foto = result.Foto
+		response.ID = userID
+		response.Skill = append(response.Skill, result.Skills...)
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "posting updated successfully",
+			"data":    response,
+		})
+	}
+}
+
+func (gu *userController) GetUserByID() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+
+		results, err := gu.srv.GetUserByID(uint(userID))
+		if err != nil {
+			c.Logger().Error("ERROR GetByID, explain:", err.Error())
+
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound, map[string]interface{}{
+					"message": "Posting not found",
+				})
+			}
+
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "Error retrieving Posting by ID",
+			})
+		}
+
+		response := UserResponse{
+			ID:     results.ID,
+			Nama:   results.Nama,
+			Email:  results.Email,
+			NoHp:   results.NoHp,
+			Alamat: results.Alamat,
+			Role:   results.Role,
+			Foto:   results.Foto,
+			Skill: func() []string {
+				var skillNames []string
+				for _, s := range results.Skill {
+					skillNames = append(skillNames, s.NamaSkill)
+				}
+				return skillNames
+			}(),
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get data by ID",
 			"data":    response,
 		})
 	}
