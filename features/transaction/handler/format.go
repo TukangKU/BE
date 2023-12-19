@@ -16,5 +16,5 @@ type TransactionRes struct {
 }
 
 type CallBack struct {
-	NoInvoice string `json:"no_invoice"`
+	OrderID string `json:"order_id"`
 }
