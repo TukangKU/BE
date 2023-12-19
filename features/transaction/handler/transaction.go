@@ -46,13 +46,13 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 
 		var response = new(TransactionRes)
 		response.ID = result.ID
+		response.NoInvoice = result.NoInvoice
 		response.JobID = result.JobID
 		response.JobPrice = result.TotalPrice
 		response.Status = result.Status
 		response.Url = result.Url
 		response.Token = result.Token
-		response.NoInvoice = result.NoInvoice
-
+		
 		return c.JSON(http.StatusCreated, map[string]any{
 			"message": "Transaction created successfully",
 			"data":    response,
@@ -102,7 +102,7 @@ func (cb *TransactionHandler) CallBack() echo.HandlerFunc {
 				"message": "input tidak sesuai",
 			})
 		}
-		result, err := cb.s.CallBack(input.NoInvoice)
+		result, err := cb.s.CallBack(input.OrderID)
 		if err != nil {
 			c.Logger().Error("something wrong: ", err.Error())
 			return c.JSON(http.StatusInternalServerError, map[string]any{
