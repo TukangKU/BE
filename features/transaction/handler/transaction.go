@@ -94,7 +94,6 @@ func (ct *TransactionHandler) CheckTransaction() echo.HandlerFunc {
 
 
 
-// CallBack implements transaction.Handler.
 func (cb *TransactionHandler) CallBack() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(CallBack)

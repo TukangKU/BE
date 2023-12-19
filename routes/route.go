@@ -13,8 +13,7 @@ import (
 
 func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler, th transaction.Handler) {
 
-	// e.Use(mdd.CORS())
-	// e.Use(mdd.Logger())
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 	e.Use(middleware.Logger())
 
