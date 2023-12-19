@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"tukangku/features/transaction"
-
+	"tukangku/helper/responses"
 
 	gojwt "github.com/golang-jwt/jwt/v5"
 
@@ -15,7 +15,6 @@ import (
 type TransactionHandler struct {
 	s transaction.Service
 }
-
 
 func New(s transaction.Service) transaction.Handler {
 	return &TransactionHandler{
@@ -45,7 +44,6 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 			})
 		}
 
-
 		var response = new(TransactionRes)
 		response.ID = result.ID
 		response.JobID = result.JobID
@@ -53,6 +51,7 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 		response.Status = result.Status
 		response.Url = result.Url
 		response.Token = result.Token
+		response.NoInvoice = result.NoInvoice
 
 		return c.JSON(http.StatusCreated, map[string]any{
 			"message": "Transaction created successfully",
@@ -61,8 +60,6 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 
 	}
 }
-
-
 
 func (ct *TransactionHandler) CheckTransaction() echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -83,13 +80,36 @@ func (ct *TransactionHandler) CheckTransaction() echo.HandlerFunc {
 
 		var response = new(TransactionRes)
 		response.ID = result.ID
+		response.NoInvoice = result.NoInvoice
 		response.JobID = result.JobID
 		response.JobPrice = result.TotalPrice
 		response.Status = result.Status
 
 		return c.JSON(http.StatusOK, map[string]any{
 			"message": "Transaction Detail",
-			"data" : response,
+			"data":    response,
 		})
+	}
+}
+
+
+
+// CallBack implements transaction.Handler.
+func (cb *TransactionHandler) CallBack() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var input = new(CallBack)
+		if err := c.Bind(input); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "input tidak sesuai",
+			})
+		}
+		result, err := cb.s.CallBack(input.NoInvoice)
+		if err != nil {
+			c.Logger().Error("something wrong: ", err.Error())
+			return c.JSON(http.StatusInternalServerError, map[string]any{
+				"message": "something wrong",
+			})
+		}
+		return responses.PrintResponse(c, http.StatusOK, "Midtrans Callback", result)
 	}
 }
