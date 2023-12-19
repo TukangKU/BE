@@ -1,7 +1,8 @@
 package model
 
 import (
-	// model "tukangku/features/skill/repository"
+	"errors"
+	"tukangku/features/skill"
 	"tukangku/features/skill/repository"
 	"tukangku/features/users"
 
@@ -10,17 +11,16 @@ import (
 
 type UserModel struct {
 	gorm.Model
-	Nama     string                  `json:"nama"`
-	UserName string                  `json:"username" gorm:"unique"`
-	Password string                  `json:"password"`
-	Email    string                  `json:"email" gorm:"unique"`
-	NoHp     string                  `json:"nohp"`
-	Alamat   string                  `json:"alamat"`
-	Foto     string                  `json:"foto"`
-	Role     string                  `json:"role"`
+	Nama     string `json:"nama"`
+	UserName string `json:"username" gorm:"unique"`
+	Password string `json:"password"`
+	Email    string `json:"email" gorm:"unique"`
+	NoHp     string `json:"nohp"`
+	Alamat   string `json:"alamat"`
+	Foto     string `json:"foto"`
+	Role     string `json:"role"`
+	Skills   string
 	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
-	// Category []model.SkillModel `gorm:"foreignKey:Skill"`
-	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
 }
 
 type userQuery struct {
@@ -39,7 +39,6 @@ func (ur *userQuery) Register(newUser users.Users) (users.Users, error) {
 	input.Email = newUser.Email
 	input.Password = newUser.Password
 	input.Role = newUser.Role
-	input.Foto = "https://res.cloudinary.com/daxpcsncf/image/upload/v1702888962/mfgsrgdlsguqjoskujib.png"
 
 	if err := ur.db.Create(&input).Error; err != nil {
 		return users.Users{}, err
@@ -68,7 +67,6 @@ func (ul *userQuery) Login(email string) (users.Users, error) {
 	return *result, nil
 }
 
-// UpdateWorker implements users.Repository.
 func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Users, error) {
 	var exitingUser = new(UserModel)
 	exitingUser.UserName = updateWorker.UserName
@@ -106,14 +104,28 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 		var userSkill = []repository.SkillModel{}
 		for _, v := range updateWorker.Skill {
 			userSkill = append(userSkill, repository.SkillModel{
-				ID: v.ID,
+				ID:        v.ID,
+				NamaSkill: v.NamaSkill,
 			})
+
 		}
-		if err := us.db.Model(exitingUser).Association("Skill").Replace(userSkill); err != nil {
+
+		if err := us.db.Model(exitingUser).Association("Skill").Replace(&userSkill); err != nil {
 
 			return users.Users{}, err
 		}
 
+	}
+
+	var user UserModel
+
+	if err := us.db.Preload("Skill").Where("id = ?", idUser).First(&user).Error; err != nil {
+		return users.Users{}, err
+	}
+
+	var response []string
+	for _, v := range user.Skill {
+		response = append(response, v.NamaSkill)
 	}
 
 	result := users.Users{
@@ -124,7 +136,38 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 		Alamat:   exitingUser.Alamat,
 		Foto:     exitingUser.Foto,
 		UserName: exitingUser.UserName,
+		Skills:   response,
 	}
 	return result, nil
 
+}
+
+func (gu *userQuery) GetUserByID(idUser uint) (users.Users, error) {
+	var result UserModel
+
+	if err := gu.db.Preload("Skill").Where("id = ?", idUser).Find(&result).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return users.Users{}, errors.New("user not found")
+		}
+		return users.Users{}, err
+	}
+
+	response := users.Users{
+		ID:       result.ID,
+		Nama:     result.Nama,
+		Email:    result.Email,
+		NoHp:     result.NoHp,
+		Alamat:   result.Alamat,
+		Foto:     result.Foto,
+		UserName: result.UserName,
+		Role:     result.Role,
+	}
+	for _, v := range result.Skill {
+		response.Skill = append(response.Skill, skill.Skills{
+			ID:        v.ID,
+			NamaSkill: v.NamaSkill,
+		})
+	}
+
+	return response, nil
 }
