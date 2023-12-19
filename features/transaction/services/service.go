@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"tukangku/features/transaction"
 	"tukangku/helper/jwt"
 
@@ -38,5 +39,11 @@ func (ct *TransactionService) CheckTransaction(transactionID uint) (transaction.
 
 func (cb *TransactionService) CallBack(noInvoice string) (transaction.TransactionList, error) {
 	result, err := cb.repo.CallBack(noInvoice)
-	return *result, err
+	if err != nil {
+		return transaction.TransactionList{}, err
+	}
+	if result == nil {
+		return transaction.TransactionList{}, errors.New("result is nil")
+	}
+	return *result, nil
 }
