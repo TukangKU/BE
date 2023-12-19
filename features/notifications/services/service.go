@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"tukangku/features/notifications"
 )
 
@@ -26,7 +25,7 @@ func (ns *notifService) GetNotifs(uid uint) ([]notifications.Notif, error) {
 
 		return nil, errors.New("terjadi kesalahan pada sistem")
 	}
-	fmt.Println(result, "service")
+	// fmt.Println(result, "service")
 
 	return result, nil
 }

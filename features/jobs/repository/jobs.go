@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"tukangku/features/jobs"
 	"tukangku/features/skill/repository"
 
@@ -36,6 +35,12 @@ type UserModel struct {
 	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
 }
 
+type NotifModel struct {
+	gorm.Model
+	UserID  uint
+	Message string
+}
+
 type jobQuery struct {
 	db *gorm.DB
 }
@@ -63,6 +68,12 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, err
 	}
 	// bikin notif dulu
+	var notif = new(NotifModel)
+	notif.UserID = newJobs.WorkerID
+	notif.Message = "Anda mendapatkan request job baru!"
+	if err := jq.db.Create(&notif).Error; err != nil {
+		return jobs.Jobs{}, err
+	}
 
 	// ngambil data dari repo untuk dikembalikan
 	var worker = new(UserModel)
@@ -70,8 +81,8 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan worker")
 	}
-	fmt.Println(input.ID)
-	fmt.Println(worker)
+	// fmt.Println(input.ID)
+	// fmt.Println(worker)
 	var response = jobs.Jobs{
 		ID:         input.ID,
 		WorkerID:   input.WorkerID,
@@ -84,7 +95,6 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		Deskripsi:  input.Deskripsi,
 		Status:     input.Status,
 	}
-	fmt.Println(response.ID)
-	fmt.Println(response.WorkerName)
+
 	return response, nil
 }

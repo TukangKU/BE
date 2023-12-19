@@ -45,6 +45,7 @@ func (nh *notifHandler) GetNotifs() echo.HandlerFunc {
 			notifResp.ID = element.ID
 			notifResp.Message = element.Message
 			notifResp.CreatedAt = element.CreatedAt
+			*response = append(*response, *notifResp)
 		}
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
