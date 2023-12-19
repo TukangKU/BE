@@ -19,7 +19,7 @@ func New(s notifications.Service) notifications.Handler {
 	}
 }
 
-func (sh *notifHandler) GetNotifs() echo.HandlerFunc {
+func (nh *notifHandler) GetNotifs() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		if err != nil {
@@ -27,6 +27,29 @@ func (sh *notifHandler) GetNotifs() echo.HandlerFunc {
 				"message": "please login first",
 			})
 		}
+		result, err := nh.service.GetNotifs(userID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "please login first",
+			})
+		}
+		if result == nil {
+			return c.JSON(http.StatusOK, map[string]interface{}{
+				"message": "no notification for this user",
+				"data":    nil})
+		}
 
+		var response = new([]NotifResponse)
+		for _, element := range result {
+			var notifResp = new(NotifResponse)
+			notifResp.ID = element.ID
+			notifResp.Message = element.Message
+			notifResp.CreatedAt = element.CreatedAt
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success getting notifs",
+			"data":    response,
+		})
 	}
 }
