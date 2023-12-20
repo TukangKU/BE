@@ -70,6 +70,12 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 // get jobs with and without query
 func (jc *jobsController) GetJobs() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		var input = new(GetRequest)
+		if err := c.Bind(input); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]any{
+				"message": "input yang di berikan tidak sesuai",
+			})
+		}
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
@@ -79,7 +85,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 		status := c.QueryParams().Get("status")
-		result, err := jc.srv.GetJobs(userID, status)
+		result, err := jc.srv.GetJobs(userID, status, input.Role)
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
 			var statusCode = http.StatusUnauthorized
@@ -89,7 +95,22 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		}
 		var statusCode = http.StatusOK
 		var message = "sukses"
+		var respon = new([]CreateResponse)
+		for _, element := range result {
+			var response = new(CreateResponse)
+			response.ID = element.ID
+			response.WorkerName = element.WorkerName
+			response.ClientName = element.ClientName
+			response.Price = element.Price
+			response.Category = element.Category
+			response.StartDate = element.StartDate
+			response.EndDate = element.EndDate
+			response.Deskripsi = element.Deskripsi
+			response.Status = element.Status
+			response.Address = element.Address
+			*respon = append(*respon, *response)
+		}
 
-		return responses.PrintResponse(c, statusCode, message, result)
+		return responses.PrintResponse(c, statusCode, message, respon)
 	}
 }

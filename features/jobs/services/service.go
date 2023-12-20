@@ -33,10 +33,10 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	return result, nil
 }
 
-func (js *jobsService) GetJobs(id uint, status string) ([]jobs.Jobs, error) {
+func (js *jobsService) GetJobs(id uint, status string, role string) ([]jobs.Jobs, error) {
 	if status == "" {
 		// code jika tidak pake query
-		result, err := js.repo.GetJobs(id)
+		result, err := js.repo.GetJobs(id, role)
 		if err != nil {
 			// eror handling
 			return nil, err
@@ -44,7 +44,7 @@ func (js *jobsService) GetJobs(id uint, status string) ([]jobs.Jobs, error) {
 		return result, nil
 	}
 
-	result, err := js.repo.GetJobsByStatus(id, status)
+	result, err := js.repo.GetJobsByStatus(id, status, role)
 	if err != nil {
 		// eror handling
 		return nil, err

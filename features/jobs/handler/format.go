@@ -22,3 +22,6 @@ type CreateResponse struct {
 	Status     string `json:"status"`
 	Address    string `json:"address"`
 }
+type GetRequest struct {
+	Role string `json:"role"`
+}

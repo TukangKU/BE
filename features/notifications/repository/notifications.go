@@ -27,7 +27,7 @@ func New(db *gorm.DB) notifications.Repository {
 func (nq *notifQuery) GetNotifs(id uint) ([]notifications.Notif, error) {
 	var proses = new([]NotifModel)
 
-	if err := nq.db.Where("id = ?", id).Order("created_at desc").Find(&proses).Error; err != nil {
+	if err := nq.db.Where("user_id = ?", id).Order("created_at desc").Find(&proses).Error; err != nil {
 		return nil, errors.New("server error")
 	}
 	if len(*proses) == 0 {
