@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"fmt"
 	"net/http"
 	"tukangku/features/jobs"
 	"tukangku/helper/jwt"
@@ -61,7 +60,8 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		response.EndDate = result.EndDate
 		response.Deskripsi = result.Deskripsi
 		response.Status = result.Status
-		fmt.Println(result, "handler")
+		response.Address = result.Address
+		// fmt.Println(result, "handler")
 		return responses.PrintResponse(c, http.StatusCreated, "success create data", response)
 
 	}

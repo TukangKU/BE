@@ -20,4 +20,5 @@ type CreateResponse struct {
 	Price      int    `json:"price"`
 	Deskripsi  string `json:"deskripsi"`
 	Status     string `json:"status"`
+	Address    string `json:"address"`
 }
