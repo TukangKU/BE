@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"tukangku/features/jobs"
 )
 
@@ -58,6 +59,8 @@ func (js *jobsService) GetJob(jobID uint) (jobs.Jobs, error) {
 		// eror handling
 		return jobs.Jobs{}, err
 	}
+
+	fmt.Println(result, "servis")
 	return result, nil
 }
 

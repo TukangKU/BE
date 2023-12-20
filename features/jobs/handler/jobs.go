@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -119,14 +120,15 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 
 func (jc *jobsController) GetJob() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		jobID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		jobID, err := strconv.Atoi(c.Param("id"))
+
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "ID tidak valid",
 			})
 		}
 		result, err := jc.srv.GetJob(uint(jobID))
-		c.Logger().Error("ERROR GetByID, explain:", err.Error())
+		// c.Logger().Error("ERROR GetByID, explain:", err.Error())
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -159,7 +161,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 
 func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		jobID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		jobID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "ID tidak valid",
@@ -179,7 +181,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 		var proses = new(jobs.Jobs)
-		switch proses.Role {
+		switch request.Role {
 		case "client":
 			proses.ClientID = userID
 		case "worker":
@@ -197,7 +199,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 		result, err := jc.srv.UpdateJob(*proses)
 
 		if err != nil {
-
+			fmt.Println(err.Error())
 			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 				"message": "eror belum disetting handler ke servis",
 			})

@@ -10,7 +10,7 @@ import (
 
 type NotifModel struct {
 	gorm.Model
-	UserID  uint
+	UserID  uint `gorm:"not null"`
 	Message string
 }
 

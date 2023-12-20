@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"tukangku/features/jobs"
 	"tukangku/features/skill/repository"
 
@@ -38,7 +39,7 @@ type UserModel struct {
 
 type NotifModel struct {
 	gorm.Model
-	UserID  uint
+	UserID  uint `gorm:"not null"`
 	Message string
 }
 
@@ -270,6 +271,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 
 func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
 	var proses = new(JobModel)
+
 	result := jq.db.Where("id = ?", jobID).First(&proses)
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan jobs")
@@ -297,7 +299,7 @@ func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
 	output.Deskripsi = proses.Deskripsi
 	output.Status = proses.Status
 	output.Address = proses.Address
-
+	fmt.Println(output, "repo")
 	return *output, nil
 
 }
@@ -321,13 +323,14 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		}
 	}
 	if update.Price != 0 {
+		proses.Price = update.Price
 
 	}
 	if update.Deskripsi != "" {
-
+		proses.Deskripsi = update.Deskripsi
 	}
 	if update.Status != "" {
-
+		proses.Status = update.Status
 	}
 	// proses
 	result = jq.db.Save(&proses)
@@ -338,10 +341,56 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	var notif = new(NotifModel)
 	switch update.Role {
 	case "client":
+		var worker = new(UserModel)
+		result = jq.db.Where("id = ?", proses.WorkerID).First(&worker)
+		if result.Error != nil {
+			return jobs.Jobs{}, errors.New("tidak ditemukan worker, notif, 404")
+		}
 		notif.UserID = update.ClientID
-		notif
+		notif.Message = fmt.Sprintf("Worker \v telah mengubah detail pada Job Request Anda", worker.Nama)
 
+		result = jq.db.Create(&notif)
+		if result.Error != nil {
+			return jobs.Jobs{}, errors.New("kesalahan saat membuat notif")
+		}
 	case "worker":
+		var client = new(UserModel)
+		result = jq.db.Where("id = ?", proses.WorkerID).First(&client)
+		if result.Error != nil {
+			return jobs.Jobs{}, errors.New("tidak ditemukan client, notif, 404")
+		}
+		notif.UserID = update.WorkerID
+		notif.Message = fmt.Sprintf("Client \v telah mengubah detail pada Job Request Anda", client.Nama)
+
+		result = jq.db.Create(&notif)
+		if result.Error != nil {
+			return jobs.Jobs{}, errors.New("kesalahan saat membuat notif")
+		}
 	}
+	var output = new(jobs.Jobs)
+	var client = new(UserModel)
+	result = jq.db.Where("id = ?", proses.ClientID).First(&client)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+	}
+	var worker = new(UserModel)
+	result = jq.db.Where("id = ?", proses.WorkerID).First(&worker)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
+	}
+	output.ID = proses.ID
+	output.WorkerID = proses.WorkerID
+	output.WorkerName = worker.Nama
+	output.ClientID = proses.ClientID
+	output.ClientName = client.Nama
+	output.Category = proses.Category
+	output.StartDate = proses.StartDate
+	output.EndDate = proses.EndDate
+	output.Price = proses.Price
+	output.Deskripsi = proses.Deskripsi
+	output.Status = proses.Status
+	output.Address = proses.Address
+
+	return *output, nil
 
 }
