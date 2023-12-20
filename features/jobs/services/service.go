@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"tukangku/features/jobs"
 )
 
@@ -30,6 +29,6 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 
 		return jobs.Jobs{}, errors.New("terjadi kesalahan pada sistem")
 	}
-	fmt.Println(result, "service")
+	// fmt.Println(result, "service")
 	return result, nil
 }
