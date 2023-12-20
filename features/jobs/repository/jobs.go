@@ -106,3 +106,6 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	// fmt.Println(response.WorkerName)
 	return response, nil
 }
+
+func (jq *jobQuery) GetJobs(userID uint) ([]jobs.Jobs, error)                        {}
+func (jq *jobQuery) GetJobsByStatus(userID uint, status string) ([]jobs.Jobs, error) {}

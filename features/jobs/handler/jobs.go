@@ -66,3 +66,30 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 
 	}
 }
+
+// get jobs with and without query
+func (jc *jobsController) GetJobs() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		if err != nil {
+			c.Logger().Error("ERROR Register, explain:", err.Error())
+			var statusCode = http.StatusUnauthorized
+			var message = "harap login"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
+		}
+		status := c.QueryParams().Get("status")
+		result, err := jc.srv.GetJobs(userID, status)
+		if err != nil {
+			c.Logger().Error("ERROR Register, explain:", err.Error())
+			var statusCode = http.StatusUnauthorized
+			var message = "harap login"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
+		}
+		var statusCode = http.StatusOK
+		var message = "sukses"
+
+		return responses.PrintResponse(c, statusCode, message, result)
+	}
+}

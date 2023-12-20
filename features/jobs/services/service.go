@@ -32,3 +32,22 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	// fmt.Println(result, "service")
 	return result, nil
 }
+
+func (js *jobsService) GetJobs(id uint, status string) ([]jobs.Jobs, error) {
+	if status == "" {
+		// code jika tidak pake query
+		result, err := js.repo.GetJobs(id)
+		if err != nil {
+			// eror handling
+			return nil, err
+		}
+		return result, nil
+	}
+
+	result, err := js.repo.GetJobsByStatus(id, status)
+	if err != nil {
+		// eror handling
+		return nil, err
+	}
+	return result, nil
+}
