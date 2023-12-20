@@ -21,15 +21,21 @@ type Jobs struct {
 type Handler interface {
 	Create() echo.HandlerFunc
 	GetJobs() echo.HandlerFunc
+	GetJob() echo.HandlerFunc
+	UpdateJob() echo.HandlerFunc
 }
 
 type Service interface {
 	Create(newJobs Jobs) (Jobs, error)
 	GetJobs(userID uint, status string, role string) ([]Jobs, error)
+	GetJob(jobID uint) (Jobs, error)
+	UpdateJob(update Jobs) (Jobs, error)
 }
 
 type Repository interface {
 	Create(newJobs Jobs) (Jobs, error)
 	GetJobs(userID uint, role string) ([]Jobs, error)
 	GetJobsByStatus(userID uint, status string, role string) ([]Jobs, error)
+	GetJob(jobID uint) (Jobs, error)
+	UpdateJob(update Jobs) (Jobs, error)
 }

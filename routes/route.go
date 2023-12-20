@@ -43,6 +43,9 @@ func routeSkill(e *echo.Echo, us skill.Handler) {
 func routeJobs(e *echo.Echo, jh jobs.Handler) {
 	e.POST("/jobs", jh.Create(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
 	e.GET("/jobs", jh.GetJobs(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("/jobs/:id", jh.GetJob(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.PUT("/jobs/:id", jh.UpdateJob(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+
 }
 
 func routeNotifs(e *echo.Echo, nh notifications.Handler) {

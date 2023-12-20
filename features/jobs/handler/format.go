@@ -25,3 +25,10 @@ type CreateResponse struct {
 type GetRequest struct {
 	Role string `json:"role"`
 }
+
+type UpdateRequest struct {
+	Price     int    `json:"price"`
+	Deskripsi string `json:"deskripsi"`
+	Status    string `json:"status"`
+	Role      string `json:"role"`
+}

@@ -51,3 +51,27 @@ func (js *jobsService) GetJobs(id uint, status string, role string) ([]jobs.Jobs
 	}
 	return result, nil
 }
+
+func (js *jobsService) GetJob(jobID uint) (jobs.Jobs, error) {
+	result, err := js.repo.GetJob(jobID)
+	if err != nil {
+		// eror handling
+		return jobs.Jobs{}, err
+	}
+	return result, nil
+}
+
+func (js *jobsService) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
+	// cek role
+	if update.Role == "client" {
+		update.Price = 0
+		update.Status = ""
+	}
+
+	result, err := js.repo.UpdateJob(update)
+	if err != nil {
+		// eror handling
+		return jobs.Jobs{}, err
+	}
+	return result, nil
+}

@@ -165,7 +165,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			var worker = new(UserModel)
 			result = jq.db.Where("id = ?", element.WorkerID).First(&worker)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+				return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
 			output.ID = element.ID
@@ -186,8 +186,6 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 	default:
 		return nil, errors.New("kesalahan pada role")
 	}
-	// worker_id
-	// return nil, errors.New("kesalahan pada role")
 
 }
 func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]jobs.Jobs, error) {
@@ -247,7 +245,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 			var worker = new(UserModel)
 			result = jq.db.Where("id = ?", element.WorkerID).First(&worker)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+				return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
 			output.ID = element.ID
@@ -268,4 +266,82 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 	default:
 		return nil, errors.New("kesalahan pada role")
 	}
+}
+
+func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
+	var proses = new(JobModel)
+	result := jq.db.Where("id = ?", jobID).First(&proses)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan jobs")
+	}
+	var output = new(jobs.Jobs)
+	var client = new(UserModel)
+	result = jq.db.Where("id = ?", proses.ClientID).First(&client)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+	}
+	var worker = new(UserModel)
+	result = jq.db.Where("id = ?", proses.ClientID).First(&worker)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
+	}
+	output.ID = proses.ID
+	output.WorkerID = proses.WorkerID
+	output.WorkerName = worker.Nama
+	output.ClientID = proses.ClientID
+	output.ClientName = client.Nama
+	output.Category = proses.Category
+	output.StartDate = proses.StartDate
+	output.EndDate = proses.EndDate
+	output.Price = proses.Price
+	output.Deskripsi = proses.Deskripsi
+	output.Status = proses.Status
+	output.Address = proses.Address
+
+	return *output, nil
+
+}
+func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
+	var proses = new(JobModel)
+	result := jq.db.Where("id = ?", update.ID).First(&proses)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan jobs")
+	}
+	if proses.Status == "finished" {
+		return jobs.Jobs{}, errors.New("jobs tidak boleh diubah, 403")
+	}
+	// cek id updater
+	if update.Role == "client" {
+		if update.ClientID != proses.ClientID {
+			return jobs.Jobs{}, errors.New("id client tidak cocok, 403")
+		}
+	} else {
+		if update.WorkerID != proses.WorkerID {
+			return jobs.Jobs{}, errors.New("id worker tidak cocok, 403")
+		}
+	}
+	if update.Price != 0 {
+
+	}
+	if update.Deskripsi != "" {
+
+	}
+	if update.Status != "" {
+
+	}
+	// proses
+	result = jq.db.Save(&proses)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("eror saat menyimpan data, 500")
+	}
+	// bikin notif
+	var notif = new(NotifModel)
+	switch update.Role {
+	case "client":
+		notif.UserID = update.ClientID
+		notif
+
+	case "worker":
+	}
+
 }
