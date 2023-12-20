@@ -21,6 +21,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	nh "tukangku/features/notifications/handler"
+	nr "tukangku/features/notifications/repository"
+	ns "tukangku/features/notifications/services"
 	sh "tukangku/features/skill/handler"
 	ss "tukangku/features/skill/services"
 )
@@ -41,7 +44,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal("tidak bisa start bro", err.Error())
 	}
-	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, &tr.Transaction{})
+	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, nr.NotifModel{}, &tr.Transaction{})
 
 	// config users features
 	enkrip := ek.New()
@@ -58,11 +61,16 @@ func main() {
 	jobServices := js.New(jobRepo)
 	jobHandler := jh.New(jobServices)
 
+	// config notifs
+	notifRepo := nr.New(db)
+	notifServices := ns.New(notifRepo)
+	notifHandler := nh.New(notifServices)
+
 	TransactionRepo := tr.New(db)
 	TransactionService := ts.New(TransactionRepo)
 	TransactionHandler := th.New(TransactionService)
 
-	routes.InitRute(e, userHandler, skillHandler, jobHandler, TransactionHandler)
+	routes.InitRute(e, userHandler, skillHandler, jobHandler, notifHandler, TransactionHandler)
 	e.Logger.Fatal(e.Start(":8000"))
 
 }

@@ -36,6 +36,12 @@ type UserModel struct {
 	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
 }
 
+type NotifModel struct {
+	gorm.Model
+	UserID  uint
+	Message string
+}
+
 type jobQuery struct {
 	db *gorm.DB
 }
@@ -68,6 +74,12 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, err
 	}
 	// bikin notif dulu
+	var notif = new(NotifModel)
+	notif.UserID = newJobs.WorkerID
+	notif.Message = "Anda mendapatkan request job baru!"
+	if err := jq.db.Create(&notif).Error; err != nil {
+		return jobs.Jobs{}, err
+	}
 
 	// ngambil data dari repo untuk dikembalikan
 	var worker = new(UserModel)
