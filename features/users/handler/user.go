@@ -245,13 +245,14 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 		}
 
 		response := UserResponse{
-			ID:     results.ID,
-			Nama:   results.Nama,
-			Email:  results.Email,
-			NoHp:   results.NoHp,
-			Alamat: results.Alamat,
-			Role:   results.Role,
-			Foto:   results.Foto,
+			ID:       results.ID,
+			UserName: results.UserName,
+			Nama:     results.Nama,
+			Email:    results.Email,
+			NoHp:     results.NoHp,
+			Alamat:   results.Alamat,
+			Role:     results.Role,
+			Foto:     results.Foto,
 			Skill: func() []string {
 				var skillNames []string
 				for _, s := range results.Skill {
