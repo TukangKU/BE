@@ -25,6 +25,7 @@ type Handler interface {
 	UpdateUser() echo.HandlerFunc
 	GetUserByID() echo.HandlerFunc
 	GetUserBySKill() echo.HandlerFunc
+	TakeWorker() echo.HandlerFunc
 }
 
 type Service interface {
@@ -33,6 +34,7 @@ type Service interface {
 	UpdateUser(idUser uint, updateWorker Users) (Users, error)
 	GetUserByID(idUser uint) (Users, error)
 	GetUserBySKill(idSkill uint, page, pageSize int) ([]Users, int, error)
+	TakeWorker(idUser uint) (Users, error)
 }
 
 type Repository interface {
@@ -41,4 +43,5 @@ type Repository interface {
 	UpdateUser(idUser uint, updateWorker Users) (Users, error)
 	GetUserByID(idUser uint) (Users, error)
 	GetUserBySKill(idSkill uint, page, pageSize int) ([]Users, int, error)
+	TakeWorker(idUser uint) (Users, error)
 }
