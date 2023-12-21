@@ -28,15 +28,15 @@ type Handler interface {
 
 type Service interface {
 	Create(newJobs Jobs) (Jobs, error)
-	GetJobs(userID uint, status string, role string) ([]Jobs, error)
+	GetJobs(userID uint, status string, role string, page int, pagesize int) ([]Jobs, int, error)
 	GetJob(jobID uint) (Jobs, error)
 	UpdateJob(update Jobs) (Jobs, error)
 }
 
 type Repository interface {
 	Create(newJobs Jobs) (Jobs, error)
-	GetJobs(userID uint, role string) ([]Jobs, error)
-	GetJobsByStatus(userID uint, status string, role string) ([]Jobs, error)
+	GetJobs(userID uint, role string, page int, pagesize int) ([]Jobs, int, error)
+	GetJobsByStatus(userID uint, status string, role string, page int, pagesize int) ([]Jobs, int, error)
 	GetJob(jobID uint) (Jobs, error)
 	UpdateJob(update Jobs) (Jobs, error)
 }

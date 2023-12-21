@@ -111,21 +111,28 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	return response, nil
 }
 
-func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
+func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	var proses = new([]JobModel)
+	var totalCount int64
+	offset := (page - 1) * pagesize
+
 	switch role {
 	case "worker":
-		if err := jq.db.Where("worker_id = ?", userID).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
+		if err := jq.db.Model(&JobModel{}).Count(&totalCount).Error; err != nil {
+			return nil, 0, err
+		}
+		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").Find(&proses).Error; err != nil {
+			return nil, 0, errors.New("server error")
 		}
 		if len(*proses) == 0 {
-			return nil, nil
+			return nil, 0, nil
 		}
 
 		var worker = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&worker)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 		}
 
 		var outputs = new([]jobs.Jobs)
@@ -134,7 +141,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			var client = new(UserModel)
 			result = jq.db.Where("id = ?", element.ClientID).First(&client)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
 			output.ID = element.ID
 			output.WorkerID = element.WorkerID
@@ -151,26 +158,26 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			output.Foto = element.Foto
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, 0, nil
 	case "client":
-		if err := jq.db.Where("client_id = ?", userID).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
+		if err := jq.db.Where("client_id = ?", userID).Order("updated_at desc").Find(&proses).Error; err != nil {
+			return nil, 0, errors.New("server error")
 		}
 		if len(*proses) == 0 {
-			return nil, nil
+			return nil, 0, nil
 		}
 
 		var client = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&client)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 		}
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
 			var worker = new(UserModel)
 			result = jq.db.Where("id = ?", element.WorkerID).First(&worker)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
 			output.ID = element.ID
@@ -188,17 +195,17 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			output.Foto = element.Foto
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, 0, nil
 	default:
-		return nil, errors.New("kesalahan pada role")
+		return nil, 0, errors.New("kesalahan pada role")
 	}
 
 }
-func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]jobs.Jobs, error) {
+func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, page int, pagesize int) ([]jobs.Jobs, error) {
 	var proses = new([]JobModel)
 	switch role {
 	case "worker":
-		if err := jq.db.Where("worker_id = ? AND status = ?", userID, status).Order("created_at desc").Find(&proses).Error; err != nil {
+		if err := jq.db.Where("worker_id = ? AND status = ?", userID, status).Order("updated_at desc").Find(&proses).Error; err != nil {
 			return nil, errors.New("server error")
 		}
 		if len(*proses) == 0 {
@@ -235,7 +242,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 		}
 		return *outputs, nil
 	case "client":
-		if err := jq.db.Where("client_id = ? AND status = ?", userID, status).Order("created_at desc").Find(&proses).Error; err != nil {
+		if err := jq.db.Where("client_id = ? AND status = ?", userID, status).Order("updated_at desc").Find(&proses).Error; err != nil {
 			return nil, errors.New("server error")
 		}
 		if len(*proses) == 0 {

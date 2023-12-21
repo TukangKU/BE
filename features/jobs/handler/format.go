@@ -24,13 +24,21 @@ type CreateResponse struct {
 	Status     string `json:"status"`
 	Address    string `json:"address"`
 }
-type GetRequest struct {
-	Role string `json:"role"`
-}
 
 type UpdateRequest struct {
 	Price     int    `json:"price"`
 	Deskripsi string `json:"deskripsi"`
 	Status    string `json:"status"`
-	Role      string `json:"role"`
+}
+
+type GetJobsResponse struct {
+	Foto string `json:"foto"`
+
+	WorkerName string `json:"worker_name"`
+	ClientName string `json:"client_name"`
+	Category   string `json:"category"`
+	StartDate  string `json:"start_date"`
+	EndDate    string `json:"end_date"`
+
+	Status string `json:"status"`
 }
