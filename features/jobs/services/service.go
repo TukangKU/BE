@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"tukangku/features/jobs"
 )
 
@@ -30,5 +31,50 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("terjadi kesalahan pada sistem")
 	}
 	// fmt.Println(result, "service")
+	return result, nil
+}
+
+func (js *jobsService) GetJobs(id uint, status string, role string) ([]jobs.Jobs, error) {
+	if status == "" {
+		// code jika tidak pake query
+		result, err := js.repo.GetJobs(id, role)
+		if err != nil {
+			// eror handling
+			return nil, err
+		}
+		return result, nil
+	}
+
+	result, err := js.repo.GetJobsByStatus(id, status, role)
+	if err != nil {
+		// eror handling
+		return nil, err
+	}
+	return result, nil
+}
+
+func (js *jobsService) GetJob(jobID uint) (jobs.Jobs, error) {
+	result, err := js.repo.GetJob(jobID)
+	if err != nil {
+		// eror handling
+		return jobs.Jobs{}, err
+	}
+
+	fmt.Println(result, "servis")
+	return result, nil
+}
+
+func (js *jobsService) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
+	// cek role
+	if update.Role == "client" {
+		update.Price = 0
+		update.Status = ""
+	}
+
+	result, err := js.repo.UpdateJob(update)
+	if err != nil {
+		// eror handling
+		return jobs.Jobs{}, err
+	}
 	return result, nil
 }

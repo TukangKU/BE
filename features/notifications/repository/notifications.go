@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"tukangku/features/notifications"
 
 	"gorm.io/gorm"
@@ -10,7 +9,7 @@ import (
 
 type NotifModel struct {
 	gorm.Model
-	UserID  uint
+	UserID  uint `gorm:"not null"`
 	Message string
 }
 
@@ -27,13 +26,13 @@ func New(db *gorm.DB) notifications.Repository {
 func (nq *notifQuery) GetNotifs(id uint) ([]notifications.Notif, error) {
 	var proses = new([]NotifModel)
 
-	if err := nq.db.Where("id = ?", id).Order("created_at desc").Find(&proses).Error; err != nil {
+	if err := nq.db.Where("user_id = ?", id).Order("created_at desc").Find(&proses).Error; err != nil {
 		return nil, errors.New("server error")
 	}
 	if len(*proses) == 0 {
 		return nil, nil
 	}
-	fmt.Println(proses, "repo")
+	// g
 	var result = new([]notifications.Notif)
 
 	for _, element := range *proses {

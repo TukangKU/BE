@@ -88,3 +88,12 @@ func (gu *userService) GetUserByID(idUser uint) (users.Users, error) {
 
 	return result, nil
 }
+
+func (gu *userService) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.Users, int, error) {
+	result, totalCount, err := gu.repo.GetUserBySKill(idSkill, page, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result, totalCount, nil
+}
