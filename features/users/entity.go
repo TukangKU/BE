@@ -16,13 +16,7 @@ type Users struct {
 	Password string         `json:"password"`
 	Foto     string         `json:"foto"`
 	Skill    []skill.Skills `json:"skill"`
-	Skills   []string      `json:"skills"`
 	Role     string         `json:"role"`
-}
-
-type SkillModel struct {
-	ID        uint    `gorm:"primarykey"`
-	NamaSkill string  `json:"skill"`
 }
 
 type Handler interface {
@@ -30,6 +24,7 @@ type Handler interface {
 	Login() echo.HandlerFunc
 	UpdateUser() echo.HandlerFunc
 	GetUserByID() echo.HandlerFunc
+	GetUserBySKill() echo.HandlerFunc
 }
 
 type Service interface {
@@ -37,6 +32,7 @@ type Service interface {
 	Login(email string, password string) (Users, error)
 	UpdateUser(idUser uint, updateWorker Users) (Users, error)
 	GetUserByID(idUser uint) (Users, error)
+	GetUserBySKill(idSkill uint, page, pageSize int) ([]Users, int, error)
 }
 
 type Repository interface {
@@ -44,4 +40,5 @@ type Repository interface {
 	Login(email string) (Users, error)
 	UpdateUser(idUser uint, updateWorker Users) (Users, error)
 	GetUserByID(idUser uint) (Users, error)
+	GetUserBySKill(idSkill uint, page, pageSize int) ([]Users, int, error)
 }

@@ -11,7 +11,9 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	ID         uint   `json:"job_id"`
+	ID   uint   `json:"job_id"`
+	Foto string `json:"foto"`
+
 	WorkerName string `json:"worker_name"`
 	ClientName string `json:"client_name"`
 	Category   string `json:"category"`
@@ -21,4 +23,14 @@ type CreateResponse struct {
 	Deskripsi  string `json:"deskripsi"`
 	Status     string `json:"status"`
 	Address    string `json:"address"`
+}
+type GetRequest struct {
+	Role string `json:"role"`
+}
+
+type UpdateRequest struct {
+	Price     int    `json:"price"`
+	Deskripsi string `json:"deskripsi"`
+	Status    string `json:"status"`
+	Role      string `json:"role"`
 }
