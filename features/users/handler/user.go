@@ -2,7 +2,10 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"tukangku/features/skill"
 	"tukangku/features/users"
@@ -207,7 +210,7 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 
 		result.Foto = link
 
-		var response = new(UserResponse)
+		var response = new(UserResponseUpdate)
 		response.ID = result.ID
 		response.UserName = result.UserName
 		response.Nama = result.Nama
@@ -216,7 +219,16 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 		response.Alamat = result.Alamat
 		response.Foto = result.Foto
 		response.ID = userID
-		response.Skill = append(response.Skill, result.Skills...)
+		response.Skill = func() []UserSkill {
+			var skill []UserSkill
+			for _, s := range result.Skill {
+				skill = append(skill, UserSkill{
+					SkillID:   s.ID,
+					NamaSKill: s.NamaSkill,
+				})
+			}
+			return skill
+		}()
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "posting updated successfully",
@@ -243,8 +255,7 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 				"message": "Error retrieving Posting by ID",
 			})
 		}
-
-		response := UserResponse{
+		response := UserResponseUpdate{
 			ID:       results.ID,
 			UserName: results.UserName,
 			Nama:     results.Nama,
@@ -253,18 +264,86 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 			Alamat:   results.Alamat,
 			Role:     results.Role,
 			Foto:     results.Foto,
-			Skill: func() []string {
-				var skillNames []string
+			Skill: func() []UserSkill {
+				var skill []UserSkill
 				for _, s := range results.Skill {
-					skillNames = append(skillNames, s.NamaSkill)
+					skill = append(skill, UserSkill{
+						SkillID:   s.ID,
+						NamaSKill: s.NamaSkill,
+					})
 				}
-				return skillNames
+				return skill
 			}(),
 		}
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "success get data by ID",
 			"data":    response,
+		})
+	}
+}
+
+func (gu *userController) GetUserBySKill() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		skillID, err := strconv.Atoi(c.QueryParam("skill"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "invalid skill id",
+			})
+		}
+
+		page, err := strconv.Atoi(c.QueryParam("page"))
+		if err != nil || page <= 0 {
+			page = 1
+		}
+
+		pageSize, err := strconv.Atoi(c.QueryParam("pagesize"))
+		if err != nil || pageSize <= 0 {
+			pageSize = 10
+		}
+
+		users, totalCount, err := gu.srv.GetUserBySKill(uint(skillID), page, pageSize)
+		if err != nil {
+			c.Logger().Error("ERROR GetUserBySkill, explain:", err.Error())
+
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "Error retrieving users by skill",
+			})
+		}
+
+		totalPages := int(math.Ceil(float64(totalCount) / float64(pageSize)))
+
+		var responsess []GetUserResponse
+		for _, v := range users {
+			responsess = append(responsess, GetUserResponse{
+				ID:       v.ID,
+				Nama:     v.Nama,
+				UserName: v.UserName,
+				Alamat:   v.Alamat,
+				Skill: func() []UserSkill {
+					var skill []UserSkill
+					for _, s := range v.Skill {
+						skill = append(skill, UserSkill{
+							SkillID:   s.ID,
+							NamaSKill: s.NamaSkill,
+						})
+					}
+					return skill
+				}(),
+			})
+
+		}
+
+		fmt.Println("response user =", responsess)
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get data by ID",
+			"data":    responsess,
+			"pagination": map[string]interface{}{
+				"skill":      skillID,
+				"page":       page,
+				"pagesize":   pageSize,
+				"totalPages": totalPages},
 		})
 	}
 }

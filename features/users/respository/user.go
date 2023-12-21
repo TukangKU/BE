@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"tukangku/features/skill"
 	"tukangku/features/skill/repository"
 	"tukangku/features/users"
@@ -11,15 +12,14 @@ import (
 
 type UserModel struct {
 	gorm.Model
-	Nama     string `json:"nama"`
-	UserName string `json:"username" gorm:"unique"`
-	Password string `json:"password"`
+	Nama     string
+	UserName string `gorm:"unique"`
+	Password string
 	Email    string `json:"email" gorm:"unique"`
-	NoHp     string `json:"nohp"`
-	Alamat   string `json:"alamat"`
-	Foto     string `json:"foto"`
-	Role     string `json:"role"`
-	Skills   string
+	NoHp     string
+	Alamat   string
+	Foto     string
+	Role     string
 	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
 }
 
@@ -124,9 +124,12 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 		return users.Users{}, err
 	}
 
-	var response []string
+	var response []skill.Skills
 	for _, v := range user.Skill {
-		response = append(response, v.NamaSkill)
+		response = append(response, skill.Skills{
+			ID:        v.ID,
+			NamaSkill: v.NamaSkill,
+		})
 	}
 
 	result := users.Users{
@@ -137,7 +140,8 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 		Alamat:   exitingUser.Alamat,
 		Foto:     exitingUser.Foto,
 		UserName: exitingUser.UserName,
-		Skills:   response,
+		// Skills:   response,
+		Skill: response,
 	}
 	return result, nil
 
@@ -171,4 +175,50 @@ func (gu *userQuery) GetUserByID(idUser uint) (users.Users, error) {
 	}
 
 	return response, nil
+}
+
+func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.Users, int, error) {
+	var result []UserModel
+	var totalCount int64
+
+	offset := (page - 1) * pageSize
+
+	if err := gu.db.Model(&UserModel{}).Count(&totalCount).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := gu.db.Preload("Skill").
+		Where("skill_models.id = ?", idSkill).
+		Joins("JOIN user_skills ON user_models.id = user_skills.user_model_id").
+		Joins("JOIN skill_models ON user_skills.skill_model_id = skill_models.id").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&result).Error; err != nil {
+		return []users.Users{}, 0, err
+	}
+	// if err := gu.db.
+	// 	Where("user_models.id IN (SELECT distinct(user_skills.user_model_id) FROM user_skills WHERE user_skills.skill_model_id = ?)", idSkill).
+	// 	Offset(offset).
+	// 	Limit(pageSize).
+	// 	Find(&result).Error; err != nil {
+	// 	return []users.Users{}, 0, err
+	// }
+	fmt.Println(result)
+	var response []users.Users
+	for _, v := range result {
+		tmp := new(users.Users)
+		tmp.ID = v.ID
+		tmp.Nama = v.Nama
+		tmp.UserName = v.UserName
+		tmp.Alamat = v.Alamat
+		tmp.Foto = v.Foto
+		for _, v := range v.Skill {
+			tmp.Skill = append(tmp.Skill, skill.Skills{
+				ID:        v.ID,
+				NamaSkill: v.NamaSkill,
+			})
+		}
+		response = append(response, *tmp)
+	}
+	return response, int(totalCount), nil
 }
