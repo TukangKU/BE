@@ -112,6 +112,12 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
+			if strings.Contains(err.Error(), "tidak ditemukan") {
+				var statusCode = http.StatusNotFound
+				var message = "tidak ditemukan"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
 			var statusCode = http.StatusUnauthorized
 			var message = "harap login"
 

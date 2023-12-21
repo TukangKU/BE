@@ -12,11 +12,11 @@ import (
 
 type JobModel struct {
 	gorm.Model
-	WorkerID  uint
-	ClientID  uint
-	Category  string
-	StartDate string
-	EndDate   string
+	WorkerID  uint   `gorm:"not null"`
+	ClientID  uint   `gorm:"not null"`
+	Category  string `gorm:"not null"`
+	StartDate string `gorm:"not null"`
+	EndDate   string `gorm:"not null"`
 	Price     int
 	Deskripsi string
 	Status    string
