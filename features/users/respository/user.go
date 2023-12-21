@@ -222,3 +222,33 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 	}
 	return response, int(totalCount), nil
 }
+
+func (tk *userQuery) TakeWorker(idUser uint) (users.Users, error) {
+	var result UserModel
+
+	if err := tk.db.Preload("Skill").Where("id = ?", idUser).Find(&result).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return users.Users{}, errors.New("user not found")
+		}
+		return users.Users{}, err
+	}
+
+	response := users.Users{
+		ID:       result.ID,
+		Nama:     result.Nama,
+		Email:    result.Email,
+		NoHp:     result.NoHp,
+		Alamat:   result.Alamat,
+		Foto:     result.Foto,
+		UserName: result.UserName,
+		Role:     result.Role,
+	}
+	for _, v := range result.Skill {
+		response.Skill = append(response.Skill, skill.Skills{
+			ID:        v.ID,
+			NamaSkill: v.NamaSkill,
+		})
+	}
+
+	return response, nil
+}
