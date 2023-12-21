@@ -20,6 +20,7 @@ type JobModel struct {
 	Deskripsi string
 	Status    string
 	Address   string
+	Foto      string
 }
 
 type UserModel struct {
@@ -60,13 +61,18 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan client")
 	}
+	var worker = new(UserModel)
+	result = jq.db.Where("id = ?", newJobs.WorkerID).First(&worker)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan worker")
+	}
 	input.Address = client.Alamat
 	input.WorkerID = newJobs.WorkerID
 	input.ClientID = newJobs.ClientID
 	input.Category = newJobs.Category
 	input.StartDate = newJobs.StartDate
 	input.EndDate = newJobs.EndDate
-
+	input.Foto = worker.Foto
 	input.Price = 0
 	input.Deskripsi = newJobs.Deskripsi
 	input.Status = "pending"
@@ -83,15 +89,12 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	}
 
 	// ngambil data dari repo untuk dikembalikan
-	var worker = new(UserModel)
-	result = jq.db.Where("id = ?", newJobs.WorkerID).First(&worker)
-	if result.Error != nil {
-		return jobs.Jobs{}, errors.New("tidak ditemukan worker")
-	}
+
 	// fmt.Println(input.ID)
 	// fmt.Println(worker)
 	var response = jobs.Jobs{
 		ID:         input.ID,
+		Foto:       input.Foto,
 		WorkerID:   input.WorkerID,
 		WorkerName: worker.Nama,
 		ClientID:   input.ClientID,
@@ -145,6 +148,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			output.Deskripsi = element.Deskripsi
 			output.Status = element.Status
 			output.Address = element.Address
+			output.Foto = element.Foto
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, nil
@@ -181,6 +185,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			output.Deskripsi = element.Deskripsi
 			output.Status = element.Status
 			output.Address = element.Address
+			output.Foto = element.Foto
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, nil
@@ -214,6 +219,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
 			}
 			output.ID = element.ID
+			output.Foto = element.Foto
 			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
 			output.ClientID = element.ClientID
@@ -250,6 +256,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]
 			}
 			var output = new(jobs.Jobs)
 			output.ID = element.ID
+			output.Foto = element.Foto
 			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
 			output.ClientID = element.ClientID
@@ -288,6 +295,7 @@ func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
 	}
 	output.ID = proses.ID
+	output.Foto = proses.Foto
 	output.WorkerID = proses.WorkerID
 	output.WorkerName = worker.Nama
 	output.ClientID = proses.ClientID
@@ -347,7 +355,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 			return jobs.Jobs{}, errors.New("tidak ditemukan worker, notif, 404")
 		}
 		notif.UserID = update.ClientID
-		notif.Message = fmt.Sprintf("Worker \v telah mengubah detail pada Job Request Anda", worker.Nama)
+		notif.Message = fmt.Sprintf("Worker %v telah mengubah detail pada Job Request Anda", worker.Nama)
 
 		result = jq.db.Create(&notif)
 		if result.Error != nil {
@@ -360,7 +368,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 			return jobs.Jobs{}, errors.New("tidak ditemukan client, notif, 404")
 		}
 		notif.UserID = update.WorkerID
-		notif.Message = fmt.Sprintf("Client \v telah mengubah detail pada Job Request Anda", client.Nama)
+		notif.Message = fmt.Sprintf("Request diubah oleh client: %v. Harap cek penawaran terkait.", client.Nama)
 
 		result = jq.db.Create(&notif)
 		if result.Error != nil {
@@ -379,6 +387,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
 	}
 	output.ID = proses.ID
+	output.Foto = proses.Foto
 	output.WorkerID = proses.WorkerID
 	output.WorkerName = worker.Nama
 	output.ClientID = proses.ClientID

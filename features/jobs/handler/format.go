@@ -11,7 +11,9 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	ID         uint   `json:"job_id"`
+	ID   uint   `json:"job_id"`
+	Foto string `json:"foto"`
+
 	WorkerName string `json:"worker_name"`
 	ClientName string `json:"client_name"`
 	Category   string `json:"category"`

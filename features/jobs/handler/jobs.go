@@ -55,6 +55,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 
 		var response = new(CreateResponse)
 		response.ID = result.ID
+		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
 		response.ClientName = input.ClientName
 		response.Price = result.Price
@@ -102,6 +103,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		for _, element := range result {
 			var response = new(CreateResponse)
 			response.ID = element.ID
+			response.Foto = element.Foto
 			response.WorkerName = element.WorkerName
 			response.ClientName = element.ClientName
 			response.Price = element.Price
@@ -128,7 +130,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 			})
 		}
 		result, err := jc.srv.GetJob(uint(jobID))
-		// c.Logger().Error("ERROR GetByID, explain:", err.Error())
+
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return c.JSON(http.StatusNotFound, map[string]interface{}{
@@ -145,6 +147,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		var response = new(CreateResponse)
 
 		response.ID = result.ID
+		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
 		response.ClientName = result.ClientName
 		response.Price = result.Price
@@ -199,14 +202,21 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 		result, err := jc.srv.UpdateJob(*proses)
 
 		if err != nil {
+			if strings.Contains(err.Error(), "tidak ditemukan") {
+				fmt.Println(err.Error())
+				return c.JSON(http.StatusNotFound, map[string]interface{}{
+					"message": "data tidak ditemukan",
+				})
+			}
 			fmt.Println(err.Error())
-			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
-				"message": "eror belum disetting handler ke servis",
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "ada masalah di server",
 			})
 		}
 
 		var response = new(CreateResponse)
 		response.ID = result.ID
+		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
 		response.ClientName = result.ClientName
 		response.Price = result.Price

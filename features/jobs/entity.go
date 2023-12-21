@@ -4,6 +4,7 @@ import "github.com/labstack/echo/v4"
 
 type Jobs struct {
 	ID         uint   `json:"job_id"`
+	Foto       string `json:"foto"`
 	WorkerName string `json:"worker_name"`
 	WorkerID   uint   `json:"worker_id"`
 	ClientName string `json:"client_name"`
