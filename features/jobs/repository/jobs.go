@@ -355,7 +355,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 			return jobs.Jobs{}, errors.New("tidak ditemukan worker, notif, 404")
 		}
 		notif.UserID = update.ClientID
-		notif.Message = fmt.Sprintf("Worker %v telah mengubah detail pada Job Request Anda", worker.Nama)
+		notif.Message = fmt.Sprintf("Worker %v telah mengubah detail pada Job Request Anda, Job ID: %v", worker.Nama, update.ID)
 
 		result = jq.db.Create(&notif)
 		if result.Error != nil {
@@ -363,12 +363,12 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		}
 	case "worker":
 		var client = new(UserModel)
-		result = jq.db.Where("id = ?", proses.WorkerID).First(&client)
+		result = jq.db.Where("id = ?", proses.ClientID).First(&client)
 		if result.Error != nil {
 			return jobs.Jobs{}, errors.New("tidak ditemukan client, notif, 404")
 		}
 		notif.UserID = update.WorkerID
-		notif.Message = fmt.Sprintf("Request diubah oleh client: %v. Harap cek penawaran terkait.", client.Nama)
+		notif.Message = fmt.Sprintf("Request %v diubah oleh client: %v. Harap cek penawaran terkait.", update.ID, client.Nama)
 
 		result = jq.db.Create(&notif)
 		if result.Error != nil {

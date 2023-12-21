@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"tukangku/features/notifications"
 
 	"gorm.io/gorm"
@@ -33,7 +32,7 @@ func (nq *notifQuery) GetNotifs(id uint) ([]notifications.Notif, error) {
 	if len(*proses) == 0 {
 		return nil, nil
 	}
-	fmt.Println(proses, "repo")
+	// g
 	var result = new([]notifications.Notif)
 
 	for _, element := range *proses {
