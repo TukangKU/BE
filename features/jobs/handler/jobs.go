@@ -157,6 +157,12 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 		totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
+		if page > totalPages {
+			var statusCode = http.StatusNotFound
+			var message = "index out of bounds"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
+		}
 		// proses response
 
 		var respon = new([]GetJobsResponse)
@@ -220,48 +226,23 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		}
 
 		// respons
-		switch userRole {
-		case "worker":
-			var response = new(GetJobResponse)
+		var response = new(GetJobResponse)
 
-			response.ID = result.ID
-			response.Category = result.Category
-			response.WorkerName = result.WorkerName
-			response.ClientName = result.ClientName
-			response.Foto = result.Foto
-			response.StartDate = result.StartDate
-			response.EndDate = result.EndDate
-			response.Address = result.Address
-			response.Price = result.Price
+		response.ID = result.ID
+		response.Category = result.Category
+		response.WorkerName = result.WorkerName
+		response.ClientName = result.ClientName
+		response.Foto = result.Foto
+		response.StartDate = result.StartDate
+		response.EndDate = result.EndDate
+		response.Address = result.Address
+		response.Price = result.Price
 
-			response.Deskripsi = result.Deskripsi
-			response.Note = result.Note
-			response.Status = result.Status
+		response.Deskripsi = result.Deskripsi
+		response.Note = result.Note
+		response.Status = result.Status
 
-			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
-
-		case "client":
-			var response = new(GetJobResponse)
-
-			response.ID = result.ID
-			response.Category = result.Category
-			response.WorkerName = result.WorkerName
-			response.ClientName = result.ClientName
-			response.Foto = result.Foto
-			response.StartDate = result.StartDate
-			response.EndDate = result.EndDate
-			response.Address = result.Address
-			response.Price = result.Price
-
-			response.Deskripsi = result.Deskripsi
-			response.Note = result.Note
-			response.Status = result.Status
-
-			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
-		default:
-			return responses.PrintResponse(c, http.StatusUnauthorized, "kesalahan pada role", nil)
-		}
-
+		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 	}
 }
 

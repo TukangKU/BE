@@ -366,8 +366,11 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan jobs")
 	}
-	if proses.Status == "accepted" && update.Status == "rejected" {
-		return jobs.Jobs{}, errors.New("jobs tidak boleh diubah, 403")
+	if proses.Status == "accepted" {
+		if update.Status != "finished" {
+			return jobs.Jobs{}, errors.New("jobs tidak boleh diubah, 403")
+		}
+
 	}
 	// fmt.Println(update, "before update  .repo")
 	// fmt.Println(proses, "before update. repo")
