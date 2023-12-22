@@ -144,19 +144,18 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 			if result.Error != nil {
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
-			output.ID = element.ID
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = client.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
-			output.Foto = client.Foto
+
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, int(totalCount), nil
@@ -192,19 +191,18 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
-			output.ID = element.ID
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = worker.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
-			output.Foto = worker.Foto
+
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, int(totalCount), nil
@@ -230,7 +228,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
 		// proses data
-		if err := jq.db.Preload("status").
+		if err := jq.db.
 			Where("worker_id = ? AND status = ?", userID, status).
 			Order("updated_at desc").
 			Offset(offset).
@@ -252,19 +250,19 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			if result.Error != nil {
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
-			output.ID = element.ID
-			output.Foto = client.Foto
-			output.WorkerID = element.WorkerID
+
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = client.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
+
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, int(totalCount), nil
@@ -279,7 +277,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			return nil, 0, errors.New("salah token")
 		}
 
-		if err := jq.db.Preload("status").
+		if err := jq.db.
 			Where("client_id = ? AND status = ?", userID, status).
 			Order("updated_at desc").
 			Offset(offset).
@@ -300,19 +298,18 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
-			output.ID = element.ID
-			output.Foto = worker.Foto
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = worker.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
+
 			*outputs = append(*outputs, *output)
 		}
 		return *outputs, int(totalCount), nil
@@ -337,7 +334,7 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 	var worker = new(UserModel)
 	result = jq.db.Where("id = ?", proses.WorkerID).First(&worker)
 	if result.Error != nil {
-		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
+		return jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
 	}
 
 	// foto
@@ -347,18 +344,19 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 		output.Foto = client.Foto
 	}
 	output.ID = proses.ID
-
-	output.WorkerID = proses.WorkerID
-	output.WorkerName = worker.Nama
-	output.ClientID = proses.ClientID
-	output.ClientName = client.Nama
 	output.Category = proses.Category
+
+	output.WorkerName = worker.Nama
+
+	output.ClientName = client.Nama
+
 	output.StartDate = proses.StartDate
 	output.EndDate = proses.EndDate
+	output.Address = proses.Address
 	output.Price = proses.Price
 	output.Deskripsi = proses.Deskripsi
+	output.Note = proses.NoteNego
 	output.Status = proses.Status
-	output.Address = proses.Address
 
 	return *output, nil
 
@@ -439,7 +437,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
 	}
 	output.ID = proses.ID
-	output.Foto = proses.Foto
+	output.Foto = client.Foto
 	output.WorkerID = proses.WorkerID
 	output.WorkerName = worker.Nama
 	output.ClientID = proses.ClientID

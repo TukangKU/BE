@@ -152,8 +152,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		}
 		totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
 		// proses response
-		var statusCode = http.StatusOK
-		var message = "sukses"
+
 		var respon = new([]GetJobsResponse)
 		for _, element := range result {
 			var response = new(GetJobsResponse)
@@ -171,7 +170,14 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			*respon = append(*respon, *response)
 		}
 
-		return responses.PrintResponse(c, statusCode, message, respon)
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get data by ID",
+			"data":    respon,
+			"pagination": map[string]interface{}{
+				"page":       page,
+				"pagesize":   pageSize,
+				"totalPages": totalPages},
+		})
 	}
 }
 
@@ -287,7 +293,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 		proses.Price = request.Price
-		proses.Deskripsi = request.Deskripsi
+		proses.Note = request.NoteNego
 		proses.Status = request.Status
 		proses.ID = uint(jobID)
 		proses.Role = userRole
@@ -306,7 +312,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 
-		var response = new(CreateResponse)
+		var response = new(GetJobResponse)
 		response.ID = result.ID
 		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName

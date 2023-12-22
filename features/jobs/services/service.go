@@ -38,28 +38,30 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	return result, nil
 }
 
-func (js *jobsService) GetJobs(id uint, status string, role string) ([]jobs.Jobs, error) {
+func (js *jobsService) GetJobs(id uint, status string, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	if status == "" {
 		// code jika tidak pake query
-		result, err := js.repo.GetJobs(id, role)
+		result, count, err := js.repo.GetJobs(id, role, page, pagesize)
 		if err != nil {
 			// eror handling
-			return nil, err
+			return nil, 0, err
 		}
-		return result, nil
+		return result, count, nil
 	}
 
-	result, err := js.repo.GetJobsByStatus(id, status, role)
+	result, count, err := js.repo.GetJobsByStatus(id, status, role, page, pagesize)
 	if err != nil {
 		// eror handling
-		return nil, err
+		return nil, 0, err
 	}
-	return result, nil
+	return result, count, nil
 }
 
 func (js *jobsService) GetJob(jobID uint, role string) (jobs.Jobs, error) {
-	if role != "worker" || role != "client" {
-		return jobs.Jobs{}, errors.New("role tidak dikenali")
+	if role != "worker" {
+		if role != "client" {
+			return jobs.Jobs{}, errors.New("role tidak dikenali")
+		}
 	}
 	result, err := js.repo.GetJob(jobID, role)
 	if err != nil {
@@ -73,10 +75,10 @@ func (js *jobsService) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 
 func (js *jobsService) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	// cek role
-	if update.Role == "client" {
-		update.Price = 0
-		update.Status = ""
-	}
+	// if update.Role == "client" {
+	// 	update.Price = 0
+	// 	update.Status = ""
+	// }
 
 	result, err := js.repo.UpdateJob(update)
 	if err != nil {

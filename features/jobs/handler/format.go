@@ -36,8 +36,8 @@ type GetJobsResponse struct {
 	Category   string `json:"category"`
 	StartDate  string `json:"start_date"`
 	EndDate    string `json:"end_date"`
-
-	Status string `json:"status"`
+	Price      int    `json:"harga"`
+	Status     string `json:"status"`
 }
 
 type GetJobResponse struct {
