@@ -177,7 +177,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get data by ID",
+			"message": "success get data",
 			"data":    respon,
 			"pagination": map[string]interface{}{
 				"page":       page,
@@ -246,6 +246,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 			response.ID = result.ID
 			response.Category = result.Category
 			response.WorkerName = result.WorkerName
+			response.ClientName = result.ClientName
 			response.Foto = result.Foto
 			response.StartDate = result.StartDate
 			response.EndDate = result.EndDate
@@ -320,16 +321,17 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 
 		var response = new(GetJobResponse)
 		response.ID = result.ID
-		response.Foto = result.Foto
+		response.Category = result.Category
 		response.WorkerName = result.WorkerName
 		response.ClientName = result.ClientName
-		response.Price = result.Price
-		response.Category = result.Category
+		response.Foto = result.Foto
 		response.StartDate = result.StartDate
 		response.EndDate = result.EndDate
-		response.Deskripsi = result.Deskripsi
-		response.Status = result.Status
 		response.Address = result.Address
+		response.Price = result.Price
+		response.Deskripsi = result.Deskripsi
+		response.Note = result.Note
+		response.Status = result.Status
 		// fmt.Println(result, "handler")
 		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 
