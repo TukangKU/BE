@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"strings"
+	"time"
 	"tukangku/features/jobs"
 	"tukangku/features/skill/repository"
 
@@ -13,7 +14,7 @@ type JobModel struct {
 	gorm.Model
 	WorkerID  uint   `gorm:"not null"`
 	ClientID  uint   `gorm:"not null"`
-	Category  uint `gorm:"not null"`
+	Category  uint   `gorm:"not null"`
 	StartDate string `gorm:"not null"`
 	EndDate   string `gorm:"not null"`
 	Price     int
@@ -42,6 +43,14 @@ type NotifModel struct {
 	gorm.Model
 	UserID  uint `gorm:"not null"`
 	Message string
+}
+
+type SkillModel struct {
+	ID        uint   `gorm:"primarykey"`
+	NamaSkill string `json:"skill"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 type jobQuery struct {
@@ -82,27 +91,30 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, err
 	}
 
+	//       "skill_id": 1,
+	//       "skill_name": "Service AC"
+	//       "skill_id": 2,
+	//       "skill_name": "Cleaning"
+	//       "skill_id": 3,
+	//       "skill_name": "Plumber"
+	//       "skill_id": 4,
+	//       "skill_name": "Decoration"
+	//       "skill_id": 5,
+	//       "skill_name": "CCTV
 
-//       "skill_id": 1,
-//       "skill_name": "Service AC"
-//       "skill_id": 2,
-//       "skill_name": "Cleaning"
-//       "skill_id": 3,
-//       "skill_name": "Plumber"
-//       "skill_id": 4,
-//       "skill_name": "Decoration"
-//       "skill_id": 5,
-//       "skill_name": "CCTV
-
-
+	var skill = new(SkillModel)
+	result = jq.db.Where("id = ?", newJobs.SkillID).First(&skill)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan client")
+	}
 
 	var response = jobs.Jobs{
-		ID:         input.ID,
-		Foto:       worker.Foto,
-	
+		ID:   input.ID,
+		Foto: worker.Foto,
+
 		WorkerName: worker.Nama,
 		ClientID:   input.ClientID,
-		Category:   input.,
+		Category:   skill.NamaSkill,
 		StartDate:  input.StartDate,
 		EndDate:    input.EndDate,
 		Price:      input.Price,
@@ -162,7 +174,12 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 			output.ClientName = client.Nama
 			output.Foto = client.Foto
 
-			output.Category = element.Category
+			var skill = new(SkillModel)
+			result = jq.db.Where("id = ?", element.Category).First(&skill)
+			if result.Error != nil {
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client")
+			}
+			output.Category = skill.NamaSkill
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
@@ -209,7 +226,12 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 			output.ClientName = client.Nama
 			output.Foto = worker.Foto
 
-			output.Category = element.Category
+			var skill = new(SkillModel)
+			result = jq.db.Where("id = ?", element.Category).First(&skill)
+			if result.Error != nil {
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client")
+			}
+			output.Category = skill.NamaSkill
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
@@ -269,7 +291,12 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			output.ClientName = client.Nama
 			output.Foto = client.Foto
 
-			output.Category = element.Category
+			var skill = new(SkillModel)
+			result = jq.db.Where("id = ?", element.Category).First(&skill)
+			if result.Error != nil {
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client")
+			}
+			output.Category = skill.NamaSkill
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
@@ -316,7 +343,12 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			output.ClientName = client.Nama
 			output.Foto = worker.Foto
 
-			output.Category = element.Category
+			var skill = new(SkillModel)
+			result = jq.db.Where("id = ?", element.Category).First(&skill)
+			if result.Error != nil {
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client")
+			}
+			output.Category = skill.NamaSkill
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
@@ -357,7 +389,13 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 		output.Foto = client.Foto
 	}
 	output.ID = proses.ID
-	output.Category = proses.Category
+
+	var skill = new(SkillModel)
+	result = jq.db.Where("id = ?", proses.Category).First(&skill)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan client")
+	}
+	output.Category = skill.NamaSkill
 
 	output.WorkerName = worker.Nama
 
@@ -436,7 +474,13 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	output.WorkerName = worker.Nama
 
 	output.ClientName = client.Nama
-	output.Category = proses.Category
+
+	var skill = new(SkillModel)
+	result = jq.db.Where("id = ?", proses.Category).First(&skill)
+	if result.Error != nil {
+		return jobs.Jobs{}, errors.New("tidak ditemukan client")
+	}
+	output.Category = skill.NamaSkill
 	output.StartDate = proses.StartDate
 	output.EndDate = proses.EndDate
 	output.Price = proses.Price
