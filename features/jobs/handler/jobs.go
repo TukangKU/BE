@@ -47,7 +47,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		inputProcess.ClientID = userID
 		inputProcess.WorkerID = uint(workerID)
 		inputProcess.Role = userRole
-		inputProcess.Category = input.Category
+		inputProcess.SkillID = input.SkillID
 		inputProcess.StartDate = input.StartDate
 		inputProcess.EndDate = input.EndDate
 		inputProcess.Deskripsi = input.Deskripsi

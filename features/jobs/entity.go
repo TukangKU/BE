@@ -10,6 +10,7 @@ type Jobs struct {
 	ClientName string `json:"client_name"`
 	ClientID   uint   `json:"client_id"`
 	Role       string `json:"role"`
+	SkillID    uint   `json:"skil_id"`
 	Category   string `json:"category"`
 	StartDate  string `json:"start_date"`
 	EndDate    string `json:"end_date"`

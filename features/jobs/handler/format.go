@@ -1,7 +1,8 @@
 package jobs
 
 type CreateRequest struct {
-	Category  string `json:"category"`
+	WorkerID  uint   `json:"worker_id"`
+	SkillID   uint   `json:"skill_id"`
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
 	Deskripsi string `json:"deskripsi"`

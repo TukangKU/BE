@@ -13,7 +13,7 @@ type JobModel struct {
 	gorm.Model
 	WorkerID  uint   `gorm:"not null"`
 	ClientID  uint   `gorm:"not null"`
-	Category  string `gorm:"not null"`
+	Category  uint `gorm:"not null"`
 	StartDate string `gorm:"not null"`
 	EndDate   string `gorm:"not null"`
 	Price     int
@@ -70,7 +70,7 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	input.Address = newJobs.Address
 	input.WorkerID = newJobs.WorkerID
 	input.ClientID = newJobs.ClientID
-	input.Category = newJobs.Category
+	input.Category = newJobs.SkillID
 	input.StartDate = newJobs.StartDate
 	input.EndDate = newJobs.EndDate
 
@@ -82,13 +82,27 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, err
 	}
 
+
+//       "skill_id": 1,
+//       "skill_name": "Service AC"
+//       "skill_id": 2,
+//       "skill_name": "Cleaning"
+//       "skill_id": 3,
+//       "skill_name": "Plumber"
+//       "skill_id": 4,
+//       "skill_name": "Decoration"
+//       "skill_id": 5,
+//       "skill_name": "CCTV
+
+
+
 	var response = jobs.Jobs{
 		ID:         input.ID,
 		Foto:       worker.Foto,
-		WorkerID:   input.WorkerID,
+	
 		WorkerName: worker.Nama,
 		ClientID:   input.ClientID,
-		Category:   input.Category,
+		Category:   input.,
 		StartDate:  input.StartDate,
 		EndDate:    input.EndDate,
 		Price:      input.Price,
