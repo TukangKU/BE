@@ -27,7 +27,15 @@ func New(s jobs.Service) jobs.Handler {
 // create jobs
 func (jc *jobsController) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
+
+		workerID, err := strconv.Atoi(c.Param("worker_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "masukkan worker_id",
+			})
+		}
 		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		var input = new(CreateRequest)
 		if err := c.Bind(input); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]any{
@@ -37,16 +45,31 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 
 		var inputProcess = new(jobs.Jobs)
 		inputProcess.ClientID = userID
-		inputProcess.WorkerID = input.WorkerID
-		inputProcess.Role = input.Role
+		inputProcess.WorkerID = uint(workerID)
+		inputProcess.Role = userRole
 		inputProcess.Category = input.Category
 		inputProcess.StartDate = input.StartDate
 		inputProcess.EndDate = input.EndDate
 		inputProcess.Deskripsi = input.Deskripsi
+		inputProcess.Address = input.Address
 
 		result, err := jc.srv.Create(*inputProcess)
 		// error nya belum
 		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				c.Logger().Error("ERROR Register, explain:", err.Error())
+				var statusCode = http.StatusNotFound
+				var message = "data worker atau client tidak ditemukan"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
+			if strings.Contains(err.Error(), "bukan client") {
+				c.Logger().Error("ERROR Register, explain:", err.Error())
+				var statusCode = http.StatusUnauthorized
+				var message = "anda bukan client"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
 			c.Logger().Error("ERROR Register, explain:", err.Error())
 			var statusCode = http.StatusInternalServerError
 			var message = "terjadi permasalahan ketika memproses data"
@@ -58,7 +81,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		response.ID = result.ID
 		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
-		response.ClientName = input.ClientName
+
 		response.Price = result.Price
 		response.Category = result.Category
 		response.StartDate = result.StartDate
@@ -113,7 +136,12 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			c.Logger().Error("ERROR Database, explain:", err.Error())
 			if strings.Contains(err.Error(), "tidak ditemukan") {
 				var statusCode = http.StatusNotFound
-				var message = "not found"
+				var message = "ada  data yang hilang atau terhapus"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			} else if strings.Contains(err.Error(), "token") {
+				var statusCode = http.StatusUnauthorized
+				var message = "salah token"
 
 				return responses.PrintResponse(c, statusCode, message, nil)
 			}
@@ -149,14 +177,23 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 
 func (jc *jobsController) GetJob() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		jobID, err := strconv.Atoi(c.Param("id"))
 
+		userRole, err := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
+		if err != nil {
+			c.Logger().Error("ERROR Register, explain:", err.Error())
+			var statusCode = http.StatusUnauthorized
+			var message = "harap login"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
+		}
+
+		jobID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "ID tidak valid",
 			})
 		}
-		result, err := jc.srv.GetJob(uint(jobID))
+		result, err := jc.srv.GetJob(uint(jobID), userRole)
 
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
@@ -171,20 +208,46 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		}
 
 		// respons
-		var response = new(CreateResponse)
+		switch userRole {
+		case "worker":
+			var response = new(GetJobResponse)
 
-		response.ID = result.ID
-		response.Foto = result.Foto
-		response.WorkerName = result.WorkerName
-		response.ClientName = result.ClientName
-		response.Price = result.Price
-		response.Category = result.Category
-		response.StartDate = result.StartDate
-		response.EndDate = result.EndDate
-		response.Deskripsi = result.Deskripsi
-		response.Status = result.Status
-		response.Address = result.Address
-		return responses.PrintResponse(c, http.StatusCreated, "success create data", response)
+			response.ID = result.ID
+			response.Category = result.Category
+			response.WorkerName = result.WorkerName
+			response.ClientName = result.ClientName
+			response.Foto = result.Foto
+			response.StartDate = result.StartDate
+			response.EndDate = result.EndDate
+			response.Address = result.Address
+			response.Price = result.Price
+
+			response.Deskripsi = result.Deskripsi
+			response.Note = result.Note
+			response.Status = result.Status
+
+			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
+
+		case "client":
+			var response = new(GetJobResponse)
+
+			response.ID = result.ID
+			response.Category = result.Category
+			response.WorkerName = result.WorkerName
+			response.Foto = result.Foto
+			response.StartDate = result.StartDate
+			response.EndDate = result.EndDate
+			response.Address = result.Address
+			response.Price = result.Price
+
+			response.Deskripsi = result.Deskripsi
+			response.Note = result.Note
+			response.Status = result.Status
+
+			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
+		default:
+			return responses.PrintResponse(c, http.StatusUnauthorized, "kesalahan pada role", nil)
+		}
 
 	}
 }

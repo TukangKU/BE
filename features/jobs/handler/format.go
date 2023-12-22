@@ -1,13 +1,11 @@
 package jobs
 
 type CreateRequest struct {
-	WorkerID   uint   `json:"worker_id"`
-	ClientName string `json:"client_name"`
-	Role       string `json:"role"`
-	Category   string `json:"category"`
-	StartDate  string `json:"start_date"`
-	EndDate    string `json:"end_date"`
-	Deskripsi  string `json:"deskripsi"`
+	Category  string `json:"category"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Deskripsi string `json:"deskripsi"`
+	Address   string `json:"alamat"`
 }
 
 type CreateResponse struct {
@@ -15,30 +13,45 @@ type CreateResponse struct {
 	Foto string `json:"foto"`
 
 	WorkerName string `json:"worker_name"`
-	ClientName string `json:"client_name"`
-	Category   string `json:"category"`
-	StartDate  string `json:"start_date"`
-	EndDate    string `json:"end_date"`
-	Price      int    `json:"price"`
-	Deskripsi  string `json:"deskripsi"`
-	Status     string `json:"status"`
-	Address    string `json:"address"`
+
+	Category  string `json:"category"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Price     int    `json:"harga"`
+	Deskripsi string `json:"deskripsi"`
+	Status    string `json:"status"`
+	Address   string `json:"alamat"`
 }
 
 type UpdateRequest struct {
-	Price     int    `json:"price"`
-	Deskripsi string `json:"deskripsi"`
-	Status    string `json:"status"`
+	Price    int    `json:"harga"`
+	NoteNego string `json:"note_negosiasi"`
+	Status   string `json:"status"`
 }
 
 type GetJobsResponse struct {
-	Foto string `json:"foto"`
-
-	WorkerName string `json:"worker_name"`
 	ClientName string `json:"client_name"`
+	WorkerName string `json:"worker_name"`
+	Foto       string `json:"foto"`
 	Category   string `json:"category"`
 	StartDate  string `json:"start_date"`
 	EndDate    string `json:"end_date"`
 
 	Status string `json:"status"`
+}
+
+type GetJobResponse struct {
+	ID         uint   `json:"job_id"`
+	Category   string `json:"category"`
+	WorkerName string `json:"worker_name"`
+	ClientName string `json:"client_name"`
+	Foto       string `json:"foto"`
+
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Address   string `json:"alamat"`
+	Price     int    `json:"harga"`
+	Deskripsi string `json:"deskripsi"`
+	Note      string `json:"note_negosiasi"`
+	Status    string `json:"status"`
 }

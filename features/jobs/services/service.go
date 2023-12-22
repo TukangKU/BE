@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"tukangku/features/jobs"
 )
 
@@ -27,6 +28,9 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	result, err := js.repo.Create(newJobs)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "tidak ditemukan") {
+			return jobs.Jobs{}, errors.New("not found")
+		}
 
 		return jobs.Jobs{}, errors.New("terjadi kesalahan pada sistem")
 	}
@@ -53,8 +57,11 @@ func (js *jobsService) GetJobs(id uint, status string, role string) ([]jobs.Jobs
 	return result, nil
 }
 
-func (js *jobsService) GetJob(jobID uint) (jobs.Jobs, error) {
-	result, err := js.repo.GetJob(jobID)
+func (js *jobsService) GetJob(jobID uint, role string) (jobs.Jobs, error) {
+	if role != "worker" || role != "client" {
+		return jobs.Jobs{}, errors.New("role tidak dikenali")
+	}
+	result, err := js.repo.GetJob(jobID, role)
 	if err != nil {
 		// eror handling
 		return jobs.Jobs{}, err
