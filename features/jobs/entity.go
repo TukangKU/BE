@@ -13,10 +13,11 @@ type Jobs struct {
 	Category   string `json:"category"`
 	StartDate  string `json:"start_date"`
 	EndDate    string `json:"end_date"`
-	Price      int    `json:"price"`
+	Price      int    `json:"harga"`
 	Deskripsi  string `json:"deskripsi"`
+	Note       string `json:"note_negosiasi"`
 	Status     string `json:"status"`
-	Address    string `json:"address"`
+	Address    string `json:"alamat"`
 }
 
 type Handler interface {
@@ -28,15 +29,15 @@ type Handler interface {
 
 type Service interface {
 	Create(newJobs Jobs) (Jobs, error)
-	GetJobs(userID uint, status string, role string) ([]Jobs, error)
-	GetJob(jobID uint) (Jobs, error)
+	GetJobs(userID uint, status string, role string, page int, pagesize int) ([]Jobs, int, error)
+	GetJob(jobID uint, role string) (Jobs, error)
 	UpdateJob(update Jobs) (Jobs, error)
 }
 
 type Repository interface {
 	Create(newJobs Jobs) (Jobs, error)
-	GetJobs(userID uint, role string) ([]Jobs, error)
-	GetJobsByStatus(userID uint, status string, role string) ([]Jobs, error)
-	GetJob(jobID uint) (Jobs, error)
+	GetJobs(userID uint, role string, page int, pagesize int) ([]Jobs, int, error)
+	GetJobsByStatus(userID uint, status string, role string, page int, pagesize int) ([]Jobs, int, error)
+	GetJob(jobID uint, role string) (Jobs, error)
 	UpdateJob(update Jobs) (Jobs, error)
 }

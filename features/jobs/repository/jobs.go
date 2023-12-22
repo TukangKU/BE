@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"tukangku/features/jobs"
 	"tukangku/features/skill/repository"
 
@@ -20,7 +21,7 @@ type JobModel struct {
 	Deskripsi string
 	Status    string
 	Address   string
-	Foto      string
+	NoteNego  string
 }
 
 type UserModel struct {
@@ -57,6 +58,7 @@ func New(db *gorm.DB) jobs.Repository {
 func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	var input = new(JobModel)
 	var client = new(UserModel)
+	// cek spam job request
 	result := jq.db.Where("id = ?", newJobs.ClientID).First(&client)
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan client")
@@ -66,13 +68,13 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan worker")
 	}
-	input.Address = client.Alamat
+	input.Address = newJobs.Address
 	input.WorkerID = newJobs.WorkerID
 	input.ClientID = newJobs.ClientID
 	input.Category = newJobs.Category
 	input.StartDate = newJobs.StartDate
 	input.EndDate = newJobs.EndDate
-	input.Foto = worker.Foto
+
 	input.Price = 0
 	input.Deskripsi = newJobs.Deskripsi
 	input.Status = "pending"
@@ -80,21 +82,10 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	if err := jq.db.Create(&input).Error; err != nil {
 		return jobs.Jobs{}, err
 	}
-	// bikin notif dulu
-	var notif = new(NotifModel)
-	notif.UserID = newJobs.WorkerID
-	notif.Message = "Anda mendapatkan request job baru!"
-	if err := jq.db.Create(&notif).Error; err != nil {
-		return jobs.Jobs{}, err
-	}
 
-	// ngambil data dari repo untuk dikembalikan
-
-	// fmt.Println(input.ID)
-	// fmt.Println(worker)
 	var response = jobs.Jobs{
 		ID:         input.ID,
-		Foto:       input.Foto,
+		Foto:       worker.Foto,
 		WorkerID:   input.WorkerID,
 		WorkerName: worker.Nama,
 		ClientID:   input.ClientID,
@@ -111,22 +102,39 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	return response, nil
 }
 
-func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
+func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	var proses = new([]JobModel)
+	var totalCount int64
+	offset := (page - 1) * pagesize
+
 	switch role {
 	case "worker":
-		if err := jq.db.Where("worker_id = ?", userID).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
-		}
-		if len(*proses) == 0 {
-			return nil, nil
-		}
-
+		// ngambil data worker dari id
 		var worker = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&worker)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 		}
+		if role != worker.Role {
+			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
+		}
+		// ngambil data
+		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").
+			Offset(offset).
+			Limit(pagesize).
+			Find(&proses).
+			Count(&totalCount).Error; err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return nil, 0, nil
+			}
+			return nil, 0, errors.New("server error")
+		}
+		if len(*proses) == 0 {
+			return nil, 0, nil
+		}
+
+		// output processing
 
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
@@ -134,149 +142,183 @@ func (jq *jobQuery) GetJobs(userID uint, role string) ([]jobs.Jobs, error) {
 			var client = new(UserModel)
 			result = jq.db.Where("id = ?", element.ClientID).First(&client)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
-			output.ID = element.ID
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = client.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
-			output.Foto = element.Foto
+
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, int(totalCount), nil
 	case "client":
-		if err := jq.db.Where("client_id = ?", userID).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
-		}
-		if len(*proses) == 0 {
-			return nil, nil
-		}
 
+		// ngambil data client
 		var client = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&client)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 		}
+		// cek role input dan role di repo
+		if role != client.Role {
+			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
+		}
+		// proses
+		if err := jq.db.Where("client_id = ?", userID).Order("updated_at desc").
+			Offset(offset).
+			Limit(pagesize).
+			Find(&proses).
+			Count(&totalCount).Error; err != nil {
+			return nil, 0, errors.New("server error")
+		}
+		if len(*proses) == 0 {
+			return nil, 0, nil
+		}
+
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
 			var worker = new(UserModel)
 			result = jq.db.Where("id = ?", element.WorkerID).First(&worker)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
-			output.ID = element.ID
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = worker.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
-			output.Foto = element.Foto
+
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, int(totalCount), nil
 	default:
-		return nil, errors.New("kesalahan pada role")
+		return nil, 0, errors.New("kesalahan pada role")
 	}
 
 }
-func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string) ([]jobs.Jobs, error) {
+func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	var proses = new([]JobModel)
+	var totalCount int64
+	offset := (page - 1) * pagesize
 	switch role {
 	case "worker":
-		if err := jq.db.Where("worker_id = ? AND status = ?", userID, status).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
-		}
-		if len(*proses) == 0 {
-			return nil, nil
-		}
+		// ngambil worker
 		var worker = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&worker)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
+		}
+		// validasi input dan proses
+		if role != worker.Role {
+			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
+		}
+		// proses data
+		if err := jq.db.
+			Where("worker_id = ? AND status = ?", userID, status).
+			Order("updated_at desc").
+			Offset(offset).
+			Limit(pagesize).
+			Find(&proses).
+			Count(&totalCount).Error; err != nil {
+			return nil, 0, errors.New("server error")
+		}
+		if len(*proses) == 0 {
+			return nil, 0, nil
 		}
 
+		// proses output
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
 			var output = new(jobs.Jobs)
 			var client = new(UserModel)
 			result = jq.db.Where("id = ?", element.ClientID).First(&client)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
-			output.ID = element.ID
-			output.Foto = element.Foto
-			output.WorkerID = element.WorkerID
+
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = client.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
+
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, int(totalCount), nil
 	case "client":
-		if err := jq.db.Where("client_id = ? AND status = ?", userID, status).Order("created_at desc").Find(&proses).Error; err != nil {
-			return nil, errors.New("server error")
-		}
-		if len(*proses) == 0 {
-			return nil, nil
-		}
-
 		var client = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&client)
 		if result.Error != nil {
-			return []jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
+			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 		}
+
+		if role != client.Role {
+			return nil, 0, errors.New("salah token")
+		}
+
+		if err := jq.db.
+			Where("client_id = ? AND status = ?", userID, status).
+			Order("updated_at desc").
+			Offset(offset).
+			Limit(pagesize).
+			Find(&proses).
+			Count(&totalCount).Error; err != nil {
+			return nil, 0, errors.New("server error")
+		}
+		if len(*proses) == 0 {
+			return nil, 0, nil
+		}
+
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
 			var worker = new(UserModel)
 			result = jq.db.Where("id = ?", element.WorkerID).First(&worker)
 			if result.Error != nil {
-				return []jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
-			output.ID = element.ID
-			output.Foto = element.Foto
-			output.WorkerID = element.WorkerID
 			output.WorkerName = worker.Nama
-			output.ClientID = element.ClientID
+
 			output.ClientName = client.Nama
+			output.Foto = worker.Foto
+
 			output.Category = element.Category
 			output.StartDate = element.StartDate
 			output.EndDate = element.EndDate
 			output.Price = element.Price
-			output.Deskripsi = element.Deskripsi
+
 			output.Status = element.Status
-			output.Address = element.Address
+
 			*outputs = append(*outputs, *output)
 		}
-		return *outputs, nil
+		return *outputs, int(totalCount), nil
 	default:
-		return nil, errors.New("kesalahan pada role")
+		return nil, 0, errors.New("kesalahan pada role")
 	}
 }
 
-func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
+func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 	var proses = new(JobModel)
 
 	result := jq.db.Where("id = ?", jobID).First(&proses)
@@ -290,24 +332,32 @@ func (jq *jobQuery) GetJob(jobID uint) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan client, 404")
 	}
 	var worker = new(UserModel)
-	result = jq.db.Where("id = ?", proses.ClientID).First(&worker)
+	result = jq.db.Where("id = ?", proses.WorkerID).First(&worker)
 	if result.Error != nil {
-		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
+		return jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
+	}
+
+	// foto
+	if role == "client" {
+		output.Foto = worker.Foto
+	} else if role == "worker" {
+		output.Foto = client.Foto
 	}
 	output.ID = proses.ID
-	output.Foto = proses.Foto
-	output.WorkerID = proses.WorkerID
-	output.WorkerName = worker.Nama
-	output.ClientID = proses.ClientID
-	output.ClientName = client.Nama
 	output.Category = proses.Category
+
+	output.WorkerName = worker.Nama
+
+	output.ClientName = client.Nama
+
 	output.StartDate = proses.StartDate
 	output.EndDate = proses.EndDate
+	output.Address = proses.Address
 	output.Price = proses.Price
 	output.Deskripsi = proses.Deskripsi
+	output.Note = proses.NoteNego
 	output.Status = proses.Status
-	output.Address = proses.Address
-	fmt.Println(output, "repo")
+
 	return *output, nil
 
 }
@@ -387,7 +437,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan woker, 404")
 	}
 	output.ID = proses.ID
-	output.Foto = proses.Foto
+	output.Foto = client.Foto
 	output.WorkerID = proses.WorkerID
 	output.WorkerName = worker.Nama
 	output.ClientID = proses.ClientID

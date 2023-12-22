@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,7 +27,15 @@ func New(s jobs.Service) jobs.Handler {
 // create jobs
 func (jc *jobsController) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
+
+		workerID, err := strconv.Atoi(c.Param("worker_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "masukkan worker_id",
+			})
+		}
 		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		var input = new(CreateRequest)
 		if err := c.Bind(input); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]any{
@@ -36,16 +45,31 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 
 		var inputProcess = new(jobs.Jobs)
 		inputProcess.ClientID = userID
-		inputProcess.WorkerID = input.WorkerID
-		inputProcess.Role = input.Role
+		inputProcess.WorkerID = uint(workerID)
+		inputProcess.Role = userRole
 		inputProcess.Category = input.Category
 		inputProcess.StartDate = input.StartDate
 		inputProcess.EndDate = input.EndDate
 		inputProcess.Deskripsi = input.Deskripsi
+		inputProcess.Address = input.Address
 
 		result, err := jc.srv.Create(*inputProcess)
 		// error nya belum
 		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				c.Logger().Error("ERROR Register, explain:", err.Error())
+				var statusCode = http.StatusNotFound
+				var message = "data worker atau client tidak ditemukan"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
+			if strings.Contains(err.Error(), "bukan client") {
+				c.Logger().Error("ERROR Register, explain:", err.Error())
+				var statusCode = http.StatusUnauthorized
+				var message = "anda bukan client"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
 			c.Logger().Error("ERROR Register, explain:", err.Error())
 			var statusCode = http.StatusInternalServerError
 			var message = "terjadi permasalahan ketika memproses data"
@@ -57,7 +81,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		response.ID = result.ID
 		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
-		response.ClientName = input.ClientName
+
 		response.Price = result.Price
 		response.Category = result.Category
 		response.StartDate = result.StartDate
@@ -74,12 +98,17 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 // get jobs with and without query
 func (jc *jobsController) GetJobs() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var input = new(GetRequest)
-		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "input yang di berikan tidak sesuai",
-			})
+		// get role
+		userRole, err := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
+		if err != nil {
+			c.Logger().Error("ERROR Register, explain:", err.Error())
+			var statusCode = http.StatusUnauthorized
+			var message = "harap login"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
 		}
+
+		// get uid
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
@@ -88,8 +117,74 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
+
+		// get queries
 		status := c.QueryParams().Get("status")
-		result, err := jc.srv.GetJobs(userID, status, input.Role)
+		page, err := strconv.Atoi(c.QueryParam("page"))
+		if err != nil || page <= 0 {
+			page = 1
+		}
+
+		pageSize, err := strconv.Atoi(c.QueryParam("pagesize"))
+		if err != nil || pageSize <= 0 {
+			pageSize = 10
+		}
+
+		// proses
+		result, count, err := jc.srv.GetJobs(userID, status, userRole, page, pageSize)
+		if err != nil {
+			c.Logger().Error("ERROR Database, explain:", err.Error())
+			if strings.Contains(err.Error(), "tidak ditemukan") {
+				var statusCode = http.StatusNotFound
+				var message = "ada  data yang hilang atau terhapus"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			} else if strings.Contains(err.Error(), "token") {
+				var statusCode = http.StatusUnauthorized
+				var message = "salah token"
+
+				return responses.PrintResponse(c, statusCode, message, nil)
+			}
+			var statusCode = http.StatusUnauthorized
+			var message = "harap login"
+
+			return responses.PrintResponse(c, statusCode, message, nil)
+		}
+		totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
+		// proses response
+
+		var respon = new([]GetJobsResponse)
+		for _, element := range result {
+			var response = new(GetJobsResponse)
+
+			response.Foto = element.Foto
+			response.WorkerName = element.WorkerName
+			response.ClientName = element.ClientName
+
+			response.Category = element.Category
+			response.StartDate = element.StartDate
+			response.EndDate = element.EndDate
+
+			response.Status = element.Status
+
+			*respon = append(*respon, *response)
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get data by ID",
+			"data":    respon,
+			"pagination": map[string]interface{}{
+				"page":       page,
+				"pagesize":   pageSize,
+				"totalPages": totalPages},
+		})
+	}
+}
+
+func (jc *jobsController) GetJob() echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		userRole, err := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
 			var statusCode = http.StatusUnauthorized
@@ -97,39 +192,14 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
-		var statusCode = http.StatusOK
-		var message = "sukses"
-		var respon = new([]CreateResponse)
-		for _, element := range result {
-			var response = new(CreateResponse)
-			response.ID = element.ID
-			response.Foto = element.Foto
-			response.WorkerName = element.WorkerName
-			response.ClientName = element.ClientName
-			response.Price = element.Price
-			response.Category = element.Category
-			response.StartDate = element.StartDate
-			response.EndDate = element.EndDate
-			response.Deskripsi = element.Deskripsi
-			response.Status = element.Status
-			response.Address = element.Address
-			*respon = append(*respon, *response)
-		}
 
-		return responses.PrintResponse(c, statusCode, message, respon)
-	}
-}
-
-func (jc *jobsController) GetJob() echo.HandlerFunc {
-	return func(c echo.Context) error {
 		jobID, err := strconv.Atoi(c.Param("id"))
-
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "ID tidak valid",
 			})
 		}
-		result, err := jc.srv.GetJob(uint(jobID))
+		result, err := jc.srv.GetJob(uint(jobID), userRole)
 
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
@@ -144,26 +214,53 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		}
 
 		// respons
-		var response = new(CreateResponse)
+		switch userRole {
+		case "worker":
+			var response = new(GetJobResponse)
 
-		response.ID = result.ID
-		response.Foto = result.Foto
-		response.WorkerName = result.WorkerName
-		response.ClientName = result.ClientName
-		response.Price = result.Price
-		response.Category = result.Category
-		response.StartDate = result.StartDate
-		response.EndDate = result.EndDate
-		response.Deskripsi = result.Deskripsi
-		response.Status = result.Status
-		response.Address = result.Address
-		return responses.PrintResponse(c, http.StatusCreated, "success create data", response)
+			response.ID = result.ID
+			response.Category = result.Category
+			response.WorkerName = result.WorkerName
+			response.ClientName = result.ClientName
+			response.Foto = result.Foto
+			response.StartDate = result.StartDate
+			response.EndDate = result.EndDate
+			response.Address = result.Address
+			response.Price = result.Price
+
+			response.Deskripsi = result.Deskripsi
+			response.Note = result.Note
+			response.Status = result.Status
+
+			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
+
+		case "client":
+			var response = new(GetJobResponse)
+
+			response.ID = result.ID
+			response.Category = result.Category
+			response.WorkerName = result.WorkerName
+			response.Foto = result.Foto
+			response.StartDate = result.StartDate
+			response.EndDate = result.EndDate
+			response.Address = result.Address
+			response.Price = result.Price
+
+			response.Deskripsi = result.Deskripsi
+			response.Note = result.Note
+			response.Status = result.Status
+
+			return responses.PrintResponse(c, http.StatusOK, "success create data", response)
+		default:
+			return responses.PrintResponse(c, http.StatusUnauthorized, "kesalahan pada role", nil)
+		}
 
 	}
 }
 
 func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 	return func(c echo.Context) error {
+
 		jobID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -178,13 +275,14 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
 				"message": "harap login",
 			})
 		}
 		var proses = new(jobs.Jobs)
-		switch request.Role {
+		switch userRole {
 		case "client":
 			proses.ClientID = userID
 		case "worker":
@@ -195,10 +293,10 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 		proses.Price = request.Price
-		proses.Deskripsi = request.Deskripsi
+		proses.Note = request.NoteNego
 		proses.Status = request.Status
 		proses.ID = uint(jobID)
-		proses.Role = request.Role
+		proses.Role = userRole
 		result, err := jc.srv.UpdateJob(*proses)
 
 		if err != nil {
@@ -214,7 +312,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 			})
 		}
 
-		var response = new(CreateResponse)
+		var response = new(GetJobResponse)
 		response.ID = result.ID
 		response.Foto = result.Foto
 		response.WorkerName = result.WorkerName
