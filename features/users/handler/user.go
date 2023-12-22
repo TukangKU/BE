@@ -347,3 +347,54 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 		})
 	}
 }
+
+func (tk *userController) TakeWorker() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, err := strconv.Atoi(c.QueryParam("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "invalid id",
+			})
+		}
+
+		results, err := tk.srv.GetUserByID(uint(userID))
+		if err != nil {
+			c.Logger().Error("ERROR GetByID, explain:", err.Error())
+
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound, map[string]interface{}{
+					"message": "Posting not found",
+				})
+			}
+
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "Error retrieving Posting by ID",
+			})
+		}
+		response := UserResponseUpdate{
+			ID:       results.ID,
+			UserName: results.UserName,
+			Nama:     results.Nama,
+			Email:    results.Email,
+			NoHp:     results.NoHp,
+			Alamat:   results.Alamat,
+			Role:     results.Role,
+			Foto:     results.Foto,
+			Skill: func() []UserSkill {
+				var skill []UserSkill
+				for _, s := range results.Skill {
+					skill = append(skill, UserSkill{
+						SkillID:   s.ID,
+						NamaSKill: s.NamaSkill,
+					})
+				}
+				return skill
+			}(),
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get data by ID",
+			"data":    response,
+		})
+	}
+}
