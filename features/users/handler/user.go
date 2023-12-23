@@ -123,7 +123,7 @@ func (ul *userController) Login() echo.HandlerFunc {
 			})
 		}
 
-		strToken, err := jwt.GenerateJWT(result.ID)
+		strToken, err := jwt.GenerateJWT(result.ID, result.Role)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]any{
 				"message": "terjadi permasalahan ketika mengenkripsi data",
