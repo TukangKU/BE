@@ -162,7 +162,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 		var respon = new([]GetJobsResponse)
 		for _, element := range result {
 			var response = new(GetJobsResponse)
-
+			response.ID = element.ID
 			response.Foto = element.Foto
 			response.WorkerName = element.WorkerName
 			response.ClientName = element.ClientName

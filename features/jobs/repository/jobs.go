@@ -170,7 +170,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
 			output.WorkerName = worker.Nama
-
+			output.ID = element.ID
 			output.ClientName = client.Nama
 			output.Foto = client.Foto
 
@@ -221,6 +221,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 			}
 			var output = new(jobs.Jobs)
+			output.ID = element.ID
 			output.WorkerName = worker.Nama
 
 			output.ClientName = client.Nama
@@ -285,7 +286,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			if result.Error != nil {
 				return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 			}
-
+			output.ID = element.ID
 			output.WorkerName = worker.Nama
 
 			output.ClientName = client.Nama
@@ -339,7 +340,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			}
 			var output = new(jobs.Jobs)
 			output.WorkerName = worker.Nama
-
+			output.ID = element.ID
 			output.ClientName = client.Nama
 			output.Foto = worker.Foto
 
