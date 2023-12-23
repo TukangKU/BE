@@ -20,7 +20,7 @@ import (
 	"tukangku/utils/database"
 
 	"github.com/labstack/echo/v4"
-	// "gorm.io/gorm"
+	"gorm.io/gorm"
 
 	nh "tukangku/features/notifications/handler"
 	nr "tukangku/features/notifications/repository"
@@ -70,21 +70,21 @@ func main() {
 	TransactionRepo := tr.New(db)
 	TransactionService := ts.New(TransactionRepo)
 	TransactionHandler := th.New(TransactionService)
-	// InitSkill(db)
+	InitSkill(db)
 
 	routes.InitRute(e, userHandler, skillHandler, jobHandler, notifHandler, TransactionHandler)
 	e.Logger.Fatal(e.Start(":8000"))
 
 }
 
-// func InitSkill(db *gorm.DB) error {
-// 	skills := []*sr.SkillModel{
-// 		{NamaSkill: "Service AC"},
-// 		{NamaSkill: "Cleaning"},
-// 		{NamaSkill: "Plumber"},
-// 		{NamaSkill: "Decoration"},
-// 		{NamaSkill: "CCTV"},
-// 	}
-// 	result := db.Create(&skills)
-// 	return result.Error
-// }
+func InitSkill(db *gorm.DB) error {
+	skills := []*sr.SkillModel{
+		{NamaSkill: "Service AC"},
+		{NamaSkill: "Cleaning"},
+		{NamaSkill: "Plumber"},
+		{NamaSkill: "Decoration"},
+		{NamaSkill: "CCTV"},
+	}
+	result := db.Create(&skills)
+	return result.Error
+}
