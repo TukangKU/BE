@@ -66,6 +66,9 @@ func New(db *gorm.DB) jobs.Repository {
 func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	var input = new(JobModel)
 	var client = new(UserModel)
+	if newJobs.Role != "client" {
+		return jobs.Jobs{}, errors.New("anda bukan client")
+	}
 	// cek spam job request
 	result := jq.db.Where("id = ?", newJobs.ClientID).First(&client)
 	if result.Error != nil {
