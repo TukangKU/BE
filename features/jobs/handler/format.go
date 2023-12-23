@@ -31,6 +31,7 @@ type UpdateRequest struct {
 }
 
 type GetJobsResponse struct {
+	ID         uint   `json:"job_id"`
 	ClientName string `json:"client_name"`
 	WorkerName string `json:"worker_name"`
 	Foto       string `json:"foto"`
