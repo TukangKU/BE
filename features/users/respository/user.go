@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	model "tukangku/features/jobs/repository"
 	"tukangku/features/skill"
 	"tukangku/features/skill/repository"
 	"tukangku/features/users"
@@ -21,6 +22,8 @@ type UserModel struct {
 	Foto     string
 	Role     string
 	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
+	Jobs     []model.JobModel        `gorm:"foreignKey:WorkerID"`
+	Requests []model.JobModel        `gorm:"foreignKey:ClientID"`
 }
 
 type userQuery struct {
