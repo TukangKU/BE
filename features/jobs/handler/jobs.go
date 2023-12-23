@@ -28,12 +28,6 @@ func New(s jobs.Service) jobs.Handler {
 func (jc *jobsController) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		workerID, err := strconv.Atoi(c.Param("worker_id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "masukkan worker_id",
-			})
-		}
 		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		var input = new(CreateRequest)
@@ -45,7 +39,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 
 		var inputProcess = new(jobs.Jobs)
 		inputProcess.ClientID = userID
-		inputProcess.WorkerID = uint(workerID)
+		inputProcess.WorkerID = input.WorkerID
 		inputProcess.Role = userRole
 		inputProcess.SkillID = input.SkillID
 		inputProcess.StartDate = input.StartDate
@@ -157,12 +151,12 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 		totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
-		if page > totalPages {
-			var statusCode = http.StatusNotFound
-			var message = "index out of bounds"
+		// if page > totalPages {
+		// 	var statusCode = http.StatusNotFound
+		// 	var message = "index out of bounds"
 
-			return responses.PrintResponse(c, statusCode, message, nil)
-		}
+		// 	return responses.PrintResponse(c, statusCode, message, nil)
+		// }
 		// proses response
 
 		var respon = new([]GetJobsResponse)
@@ -292,6 +286,11 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 				fmt.Println(err.Error())
 				return c.JSON(http.StatusNotFound, map[string]interface{}{
 					"message": "data tidak ditemukan",
+				})
+			} else if strings.Contains(err.Error(), "403") {
+				fmt.Println(err.Error())
+				return c.JSON(http.StatusForbidden, map[string]interface{}{
+					"message": "data tidak bisa diubah dengan nilai tersebut",
 				})
 			}
 			fmt.Println(err.Error())

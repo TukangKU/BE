@@ -424,6 +424,10 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		}
 
 	}
+
+	if update.Status == "accepted" {
+		update.Price = 0
+	}
 	// fmt.Println(update, "before update  .repo")
 	// fmt.Println(proses, "before update. repo")
 	// cek id updater
