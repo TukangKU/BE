@@ -173,7 +173,7 @@ func TestCreate(t *testing.T) {
 
 func TestGetJob(t *testing.T) {
 	repo := mocks.NewRepository(t)
-	// msrv := mocks.NewService(t)
+	msrv := mocks.NewService(t)
 	srv := services.New(repo)
 	var jobID uint = 1
 	var jobIDFalse uint = 2
@@ -226,5 +226,71 @@ func TestGetJob(t *testing.T) {
 
 		assert.Equal(t, errors.New("not found"), err)
 	})
+	t.Run("Failed Case 2", func(t *testing.T) {
+		repo.On("GetJob", jobIDFalse, roleB).Return(jobs.Jobs{}, errors.New("not found")).Once()
+		proses, err := srv.GetJob(jobIDFalse, roleB)
+		repo.AssertExpectations(t)
+		assert.Equal(t, proses, jobs.Jobs{})
 
+		assert.Equal(t, errors.New("not found"), err)
+	})
+	t.Run("Failed Case 3", func(t *testing.T) {
+		msrv.On("GetJob", jobIDFalse, "roleB").Return(jobs.Jobs{}, errors.New("role tidak dikenali")).Once()
+		proses, err := msrv.GetJob(jobIDFalse, "roleB")
+		repo.AssertExpectations(t)
+		assert.Equal(t, proses, jobs.Jobs{})
+
+		assert.Equal(t, errors.New("role tidak dikenali"), err)
+	})
+}
+func TestUpdateJob(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	// msrv := mocks.NewService(t)
+	srv := services.New(repo)
+	var jobID uint = 1
+	var reqBodyW = jobs.Jobs{
+		ID:   1,
+		Role: "worker",
+
+		WorkerID: workerID,
+		Price:    300000,
+
+		Status: "negotiation",
+		Note:   "baik mas, harganya 300000",
+	}
+	// var jobIDFalse uint = 2
+	// var resultA = jobs.Jobs{
+	// 	ID:         1,
+	// 	Foto:       "worker.jpg",
+	// 	WorkerName: "Paijo",
+	// 	Category:   "Plumber",
+
+	// 	StartDate: "2023-12-25",
+	// 	EndDate:   "2023-12-25",
+	// 	Price:     0,
+	// 	Deskripsi: "Mas, tolong benerin sambungan pipa ke wastafel",
+	// 	Status:    "pending",
+	// 	Address:   "Jl.Setiabudi nomor 3",
+	// }
+	var resultW = jobs.Jobs{
+		ID:         jobID,
+		Foto:       "client.jpg",
+		WorkerName: "Paijo",
+		Category:   "Plumber",
+
+		StartDate: "2023-12-25",
+		EndDate:   "2023-12-25",
+		Price:     300000,
+		Deskripsi: "Mas, tolong benerin sambungan pipa ke wastafel",
+		Status:    "negotiation",
+		Note:      "baik mas, harganya 300000",
+		Address:   "Jl.Setiabudi nomor 3",
+	}
+	t.Run("Success Case W", func(t *testing.T) {
+		repo.On("UpdateJob", reqBodyW).Return(resultW, nil).Once()
+		proses, err := srv.UpdateJob(reqBodyW)
+		repo.AssertExpectations(t)
+		assert.Nil(t, err)
+		assert.Equal(t, resultW, proses)
+	})
 }
