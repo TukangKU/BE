@@ -32,7 +32,7 @@ func (js *jobsService) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 			return jobs.Jobs{}, errors.New("not found")
 		}
 
-		return jobs.Jobs{}, errors.New("terjadi kesalahan pada sistem")
+		return jobs.Jobs{}, err
 	}
 	// fmt.Println(result, "service")
 	return result, nil
