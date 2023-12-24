@@ -21,9 +21,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	// nh "tukangku/features/notifications/handler"
-	// nr "tukangku/features/notifications/repository"
-	// ns "tukangku/features/notifications/services"
 	sh "tukangku/features/skill/handler"
 	ss "tukangku/features/skill/services"
 )
@@ -60,11 +57,6 @@ func main() {
 	jobRepo := jr.New(db)
 	jobServices := js.New(jobRepo)
 	jobHandler := jh.New(jobServices)
-
-	// config notifs
-	// notifRepo := nr.New(db)
-	// notifServices := ns.New(notifRepo)
-	// notifHandler := nh.New(notifServices)
 
 	TransactionRepo := tr.New(db)
 	TransactionService := ts.New(TransactionRepo)
