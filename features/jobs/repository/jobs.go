@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 	"tukangku/features/jobs"
-	"tukangku/features/skill/repository"
 
 	"gorm.io/gorm"
 )
@@ -27,22 +26,16 @@ type JobModel struct {
 type UserModel struct {
 	gorm.Model
 	Nama     string
-	UserName string
+	UserName string `gorm:"unique"`
 	Password string
-	Email    string
+	Email    string `json:"email" gorm:"unique"`
 	NoHp     string
 	Alamat   string
 	Foto     string
 	Role     string
-	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
-	// Category []model.SkillModel `gorm:"foreignKey:Skill"`
-	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
-}
-
-type NotifModel struct {
-	gorm.Model
-	UserID  uint `gorm:"not null"`
-	Message string
+	Skill    []SkillModel `gorm:"many2many:user_skills;"`
+	Jobs     []JobModel   `gorm:"foreignKey:WorkerID"`
+	Requests []JobModel   `gorm:"foreignKey:ClientID"`
 }
 
 type SkillModel struct {
@@ -51,8 +44,8 @@ type SkillModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Jobs      []JobModel     `gorm:"foreignKey:Category"`
 }
-
 type jobQuery struct {
 	db *gorm.DB
 }
@@ -66,6 +59,9 @@ func New(db *gorm.DB) jobs.Repository {
 func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	var input = new(JobModel)
 	var client = new(UserModel)
+	if newJobs.Role != "client" {
+		return jobs.Jobs{}, errors.New("anda bukan client")
+	}
 	// cek spam job request
 	result := jq.db.Where("id = ?", newJobs.ClientID).First(&client)
 	if result.Error != nil {
