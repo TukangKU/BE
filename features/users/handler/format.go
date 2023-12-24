@@ -40,38 +40,40 @@ type UserUpdate struct {
 }
 
 type UserResponse struct {
-	ID       uint      `json:"id" form:"id"`
-	UserName string    `json:"username" form:"username"`
-	Nama     string    `json:"nama" form:"nama"`
-	Email    string    `json:"email" form:"email"`
-	NoHp     string    `json:"nohp" form:"nohp"`
-	Alamat   string    `json:"alamat" form:"alamat"`
-	Foto     string    `json:"foto" form:"foto"`
-	Role     string    `json:"role" form:"role"`
-	Skill    []string  `json:"skill" form:"skill"`
-	Skilll UserSkill
+	ID       uint     `json:"id" form:"id"`
+	UserName string   `json:"username" form:"username"`
+	Nama     string   `json:"nama" form:"nama"`
+	Email    string   `json:"email" form:"email"`
+	NoHp     string   `json:"nohp" form:"nohp"`
+	Alamat   string   `json:"alamat" form:"alamat"`
+	Foto     string   `json:"foto" form:"foto"`
+	Role     string   `json:"role" form:"role"`
+	Skill    []string `json:"skill" form:"skill"`
+	Skilll   UserSkill
 }
 
 type UserResponseUpdate struct {
-	ID       uint      `json:"id" form:"id"`
-	UserName string    `json:"username" form:"username"`
-	Nama     string    `json:"nama" form:"nama"`
-	Email    string    `json:"email" form:"email"`
-	NoHp     string    `json:"nohp" form:"nohp"`
-	Alamat   string    `json:"alamat" form:"alamat"`
-	Foto     string    `json:"foto" form:"foto"`
-	Role     string    `json:"role" form:"role"`
-	Skill    []UserSkill  `json:"skill" form:"skill"`
+	ID       uint        `json:"id" form:"id"`
+	UserName string      `json:"username" form:"username"`
+	Nama     string      `json:"nama" form:"nama"`
+	Email    string      `json:"email" form:"email"`
+	NoHp     string      `json:"nohp" form:"nohp"`
+	Alamat   string      `json:"alamat" form:"alamat"`
+	Foto     string      `json:"foto" form:"foto"`
+	Role     string      `json:"role" form:"role"`
+	Skill    []UserSkill `json:"skill" form:"skill"`
+	Job      []UserJob   `json:"job" form:"job"`
 }
 
 type GetUserResponse struct {
-	ID       uint      `json:"id" form:"id"`
-	UserName string    `json:"username" form:"username"`
-	Nama     string    `json:"nama" form:"nama"`
-	Email    string    `json:"email" form:"email"`
-	Alamat   string    `json:"alamat" form:"alamat"`
-	Foto     string    `json:"foto" form:"foto"`
-	Skill    []UserSkill  `json:"skill" form:"skill"`
+	ID       uint        `json:"id" form:"id"`
+	UserName string      `json:"username" form:"username"`
+	Nama     string      `json:"nama" form:"nama"`
+	Email    string      `json:"email" form:"email"`
+	Alamat   string      `json:"alamat" form:"alamat"`
+	Foto     string      `json:"foto" form:"foto"`
+	Skill    []UserSkill `json:"skill" form:"skill"`
+	JobCount int         `json:"job_count"`
 }
 
 type UserSkill struct {
@@ -79,4 +81,8 @@ type UserSkill struct {
 	NamaSKill string `json:"skill"`
 }
 
-
+type UserJob struct {
+	JobID    uint   `json:"job_id"`
+	Price    int    `json:"price"`
+	Category string `json:"category"`
+}

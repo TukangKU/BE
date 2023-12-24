@@ -2,8 +2,8 @@ package model
 
 import (
 	"errors"
-	"fmt"
-
+	"tukangku/features/jobs"
+	jr "tukangku/features/jobs/repository"
 	"tukangku/features/skill"
 	"tukangku/features/skill/repository"
 	"tukangku/features/users"
@@ -22,22 +22,7 @@ type UserModel struct {
 	Foto     string
 	Role     string
 	Skill    []repository.SkillModel `gorm:"many2many:user_skills;"`
-	Jobs     []JobModel              `gorm:"foreignKey:WorkerID"`
-	Requests []JobModel              `gorm:"foreignKey:ClientID"`
-}
-
-type JobModel struct {
-	gorm.Model
-	WorkerID  uint   `gorm:"not null"`
-	ClientID  uint   `gorm:"not null"`
-	Category  uint   `gorm:"not null"`
-	StartDate string `gorm:"not null"`
-	EndDate   string `gorm:"not null"`
-	Price     int
-	Deskripsi string
-	Status    string
-	Address   string
-	NoteNego  string
+	Job      []jr.JobModel           `gorm:"foreignKey:WorkerID;"`
 }
 
 type userQuery struct {
@@ -204,23 +189,17 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 		return nil, 0, err
 	}
 
-	if err := gu.db.Preload("Skill").
-		Where("skill_models.id = ?", idSkill).
-		Joins("JOIN user_skills ON user_models.id = user_skills.user_model_id").
-		Joins("JOIN skill_models ON user_skills.skill_model_id = skill_models.id").
+	if err := gu.db.
+		Preload("Skill").
+		Preload("Job").
+		Where("id IN (SELECT DISTINCT(user_model_id) as id FROM user_skills where skill_model_id = ?)", idSkill).
 		Offset(offset).
 		Limit(pageSize).
 		Find(&result).Error; err != nil {
 		return []users.Users{}, 0, err
 	}
-	// if err := gu.db.
-	// 	Where("user_models.id IN (SELECT distinct(user_skills.user_model_id) FROM user_skills WHERE user_skills.skill_model_id = ?)", idSkill).
-	// 	Offset(offset).
-	// 	Limit(pageSize).
-	// 	Find(&result).Error; err != nil {
-	// 	return []users.Users{}, 0, err
-	// }
-	fmt.Println(result)
+
+
 	var response []users.Users
 	for _, v := range result {
 		tmp := new(users.Users)
@@ -235,6 +214,7 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 				NamaSkill: v.NamaSkill,
 			})
 		}
+		tmp.JobCount = len(v.Job)
 		response = append(response, *tmp)
 	}
 	return response, int(totalCount), nil
@@ -243,7 +223,7 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 func (tk *userQuery) TakeWorker(idUser uint) (users.Users, error) {
 	var result UserModel
 
-	if err := tk.db.Preload("Skill").Where("id = ?", idUser).Find(&result).Error; err != nil {
+	if err := tk.db.Preload("Skill").Preload("Job").Preload("Job.CategoryModel").Where("id = ?", idUser).Find(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return users.Users{}, errors.New("user not found")
 		}
@@ -259,12 +239,27 @@ func (tk *userQuery) TakeWorker(idUser uint) (users.Users, error) {
 		Foto:     result.Foto,
 		UserName: result.UserName,
 		Role:     result.Role,
-	}
-	for _, v := range result.Skill {
-		response.Skill = append(response.Skill, skill.Skills{
-			ID:        v.ID,
-			NamaSkill: v.NamaSkill,
-		})
+		Skill: func() []skill.Skills {
+			var skl []skill.Skills
+			for _, s := range result.Skill {
+				skl = append(skl, skill.Skills{
+					ID:        s.ID,
+					NamaSkill: s.NamaSkill,
+				})
+			}
+			return skl
+		}(),
+		Job: func() []jobs.Jobs {
+			var skl []jobs.Jobs
+			for _, s := range result.Job {
+				skl = append(skl, jobs.Jobs{
+					ID:       s.ID,
+					Price:    s.Price,
+					Category: s.CategoryModel.NamaSkill,
+				})
+			}
+			return skl
+		}(),
 	}
 
 	return response, nil

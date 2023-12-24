@@ -11,16 +11,18 @@ import (
 
 type JobModel struct {
 	gorm.Model
-	WorkerID  uint   `gorm:"not null"`
-	ClientID  uint   `gorm:"not null"`
-	Category  uint   `gorm:"not null"`
-	StartDate string `gorm:"not null"`
-	EndDate   string `gorm:"not null"`
-	Price     int
-	Deskripsi string
-	Status    string
-	Address   string
-	NoteNego  string
+	WorkerID      uint       `gorm:"not null"`
+	ClientID      uint       `gorm:"not null"`
+	Client        UserModel  `gorm:"foreignKey:ClientID;"`
+	Category      uint       `gorm:"not null"`
+	CategoryModel SkillModel `gorm:"foreignKey:Category;"`
+	StartDate     string     `gorm:"not null"`
+	EndDate       string     `gorm:"not null"`
+	Price         int
+	Deskripsi     string
+	Status        string
+	Address       string
+	NoteNego      string
 }
 
 type UserModel struct {

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"tukangku/features/jobs"
 	"tukangku/features/skill"
 
 	"github.com/labstack/echo/v4"
@@ -16,6 +17,8 @@ type Users struct {
 	Password string         `json:"password"`
 	Foto     string         `json:"foto"`
 	Skill    []skill.Skills `json:"skill"`
+	JobCount int            `json:"job_count"`
+	Job      []jobs.Jobs    `json:"job"`
 	Role     string         `json:"role"`
 }
 
