@@ -166,6 +166,7 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			response.Foto = element.Foto
 			response.WorkerName = element.WorkerName
 			response.ClientName = element.ClientName
+			response.Price = element.Price
 
 			response.Category = element.Category
 			response.StartDate = element.StartDate

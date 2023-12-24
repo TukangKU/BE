@@ -239,7 +239,13 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 
 func (gu *userController) GetUserByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		// userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
+		userID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "invalid id",
+			})
+		}
 
 		results, err := gu.srv.GetUserByID(uint(userID))
 		if err != nil {
@@ -330,6 +336,7 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 					}
 					return skill
 				}(),
+				JobCount: v.JobCount,
 			})
 
 		}
@@ -357,7 +364,7 @@ func (tk *userController) TakeWorker() echo.HandlerFunc {
 			})
 		}
 
-		results, err := tk.srv.GetUserByID(uint(userID))
+		results, err := tk.srv.TakeWorker(uint(userID))
 		if err != nil {
 			c.Logger().Error("ERROR GetByID, explain:", err.Error())
 
@@ -386,6 +393,17 @@ func (tk *userController) TakeWorker() echo.HandlerFunc {
 					skill = append(skill, UserSkill{
 						SkillID:   s.ID,
 						NamaSKill: s.NamaSkill,
+					})
+				}
+				return skill
+			}(),
+			Job: func() []UserJob {
+				var skill []UserJob
+				for _, s := range results.Job {
+					skill = append(skill, UserJob{
+						JobID:    s.ID,
+						Price:    s.Price,
+						Category: s.Category,
 					})
 				}
 				return skill
