@@ -99,7 +99,7 @@ func (gu *userService) GetUserBySKill(idSkill uint, page, pageSize int) ([]users
 }
 
 func (tk *userService) TakeWorker(idUser uint) (users.Users, error) {
-	result, err := tk.repo.GetUserByID(idUser)
+	result, err := tk.repo.TakeWorker(idUser)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return users.Users{}, errors.New("user not found")

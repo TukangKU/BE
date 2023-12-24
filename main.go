@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal("tidak bisa start bro", err.Error())
 	}
-	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, nr.NotifModel{}, &tr.Transaction{})
+	db.AutoMigrate(ur.UserModel{}, jr.JobModel{}, sr.SkillModel{}, nr.NotifModel{}, &tr.Transaction{})
 
 	// config users features
 	enkrip := ek.New()

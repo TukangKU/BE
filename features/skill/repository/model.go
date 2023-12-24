@@ -13,6 +13,20 @@ type SkillModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Jobs      []JobModel     `gorm:"foreignKey:Category"`
+}
+type JobModel struct {
+	gorm.Model
+	WorkerID  uint   `gorm:"not null"`
+	ClientID  uint   `gorm:"not null"`
+	Category  uint   `gorm:"not null"`
+	StartDate string `gorm:"not null"`
+	EndDate   string `gorm:"not null"`
+	Price     int
+	Deskripsi string
+	Status    string
+	Address   string
+	NoteNego  string
 }
 
 type SkillQuery struct {
