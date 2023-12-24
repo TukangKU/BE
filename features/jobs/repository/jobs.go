@@ -39,12 +39,6 @@ type UserModel struct {
 	// SkillUser []skill.Skills `gorm:"foreignKey:Skill"`
 }
 
-type NotifModel struct {
-	gorm.Model
-	UserID  uint `gorm:"not null"`
-	Message string
-}
-
 type SkillModel struct {
 	ID        uint   `gorm:"primarykey"`
 	NamaSkill string `json:"skill"`
