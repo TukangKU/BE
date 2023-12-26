@@ -125,6 +125,7 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 
 func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	var proses = new([]JobModel)
+	var prePagination = new([]JobModel)
 	var totalCount int64
 	offset := (page - 1) * pagesize
 
@@ -142,10 +143,18 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 		// ngambil data
 		if err := jq.db.
 			Where("worker_id = ?", userID).Order("updated_at desc").
+			Find(&prePagination).
+			Count(&totalCount).Error; err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return nil, 0, nil
+			}
+			return nil, 0, errors.New("server error")
+		}
+		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").
 			Offset(offset).
 			Limit(pagesize).
-			Find(&proses).
-			Count(&totalCount).Error; err != nil {
+			Find(&proses).Error; err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return nil, 0, nil
 			}
@@ -197,12 +206,21 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 		if role != client.Role {
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
+		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").
+			Find(&prePagination).
+			Count(&totalCount).Error; err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return nil, 0, nil
+			}
+			return nil, 0, errors.New("server error")
+		}
 		// proses
 		if err := jq.db.Where("client_id = ?", userID).Order("updated_at desc").
 			Offset(offset).
 			Limit(pagesize).
 			Find(&proses).
-			Count(&totalCount).Error; err != nil {
+			Error; err != nil {
 			return nil, 0, errors.New("server error")
 		}
 		if len(*proses) == 0 {
@@ -245,6 +263,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 }
 func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, page int, pagesize int) ([]jobs.Jobs, int, error) {
 	var proses = new([]JobModel)
+	var prePagination = new([]JobModel)
 	var totalCount int64
 	offset := (page - 1) * pagesize
 	switch role {
@@ -261,12 +280,20 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 		}
 		// proses data
 		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").
+			Find(&prePagination).
+			Count(&totalCount).Error; err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return nil, 0, nil
+			}
+			return nil, 0, errors.New("server error")
+		}
+		if err := jq.db.
 			Where("worker_id = ? AND status = ?", userID, status).
 			Order("updated_at desc").
 			Offset(offset).
 			Limit(pagesize).
-			Find(&proses).
-			Count(&totalCount).Error; err != nil {
+			Find(&proses).Error; err != nil {
 			return nil, 0, errors.New("server error")
 		}
 		if len(*proses) == 0 {
@@ -313,14 +340,22 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 		if role != client.Role {
 			return nil, 0, errors.New("salah token")
 		}
-
+		if err := jq.db.
+			Where("worker_id = ?", userID).Order("updated_at desc").
+			Find(&prePagination).
+			Count(&totalCount).Error; err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return nil, 0, nil
+			}
+			return nil, 0, errors.New("server error")
+		}
 		if err := jq.db.
 			Where("client_id = ? AND status = ?", userID, status).
 			Order("updated_at desc").
 			Offset(offset).
 			Limit(pagesize).
 			Find(&proses).
-			Count(&totalCount).Error; err != nil {
+			Error; err != nil {
 			return nil, 0, errors.New("server error")
 		}
 		if len(*proses) == 0 {
@@ -436,6 +471,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 		if update.WorkerID != proses.WorkerID {
 			return jobs.Jobs{}, errors.New("id worker tidak cocok, 403")
 		}
+		return jobs.Jobs{}, errors.New("masukkan role, 403")
 	}
 	if update.Price != 0 {
 		proses.Price = update.Price

@@ -20,11 +20,7 @@ import (
 	"tukangku/utils/database"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 
-	nh "tukangku/features/notifications/handler"
-	nr "tukangku/features/notifications/repository"
-	ns "tukangku/features/notifications/services"
 	sh "tukangku/features/skill/handler"
 	ss "tukangku/features/skill/services"
 )
@@ -45,7 +41,7 @@ func main() {
 	if err != nil {
 		e.Logger.Fatal("tidak bisa start bro", err.Error())
 	}
-	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, nr.NotifModel{}, &tr.Transaction{})
+	db.AutoMigrate(jr.JobModel{}, ur.UserModel{}, sr.SkillModel{}, &tr.Transaction{})
 
 	// config users features
 	enkrip := ek.New()
@@ -62,29 +58,11 @@ func main() {
 	jobServices := js.New(jobRepo)
 	jobHandler := jh.New(jobServices)
 
-	// config notifs
-	notifRepo := nr.New(db)
-	notifServices := ns.New(notifRepo)
-	notifHandler := nh.New(notifServices)
-
 	TransactionRepo := tr.New(db)
 	TransactionService := ts.New(TransactionRepo)
 	TransactionHandler := th.New(TransactionService)
-	InitSkill(db)
 
-	routes.InitRute(e, userHandler, skillHandler, jobHandler, notifHandler, TransactionHandler)
+	routes.InitRute(e, userHandler, skillHandler, jobHandler, TransactionHandler)
 	e.Logger.Fatal(e.Start(":8000"))
 
-}
-
-func InitSkill(db *gorm.DB) error {
-	skills := []*sr.SkillModel{
-		{NamaSkill: "Service AC"},
-		{NamaSkill: "Cleaning"},
-		{NamaSkill: "Plumber"},
-		{NamaSkill: "Decoration"},
-		{NamaSkill: "CCTV"},
-	}
-	result := db.Create(&skills)
-	return result.Error
 }

@@ -270,7 +270,7 @@ func TestUpdateJob(t *testing.T) {
 	}
 	var reqBodyAcc = jobs.Jobs{
 		ID:   1,
-		Role: "client",
+		Role: "worker",
 
 		WorkerID: workerID,
 		Price:    250000,
@@ -278,9 +278,29 @@ func TestUpdateJob(t *testing.T) {
 		Status: "accepted",
 		Note:   "250 aja ya mas?",
 	}
+	var reqBodyAccClient = jobs.Jobs{
+		ID:   1,
+		Role: "client",
+
+		WorkerID: workerID,
+		Price:    0,
+
+		Status: "accepted",
+	}
 	var reqBodyNoID = jobs.Jobs{
 
 		Role: "client",
+
+		WorkerID: workerID,
+		Price:    250000,
+
+		Status: "negotiation",
+		Note:   "250 aja ya mas?",
+	}
+
+	var reqBodyNoRole = jobs.Jobs{
+		ID:   1,
+		Role: "",
 
 		WorkerID: workerID,
 		Price:    250000,
@@ -301,6 +321,20 @@ func TestUpdateJob(t *testing.T) {
 		Deskripsi: "Mas, tolong benerin sambungan pipa ke wastafel",
 		Status:    "negotiation",
 		Note:      "250 aja ya mas?",
+		Address:   "Jl.Setiabudi nomor 3",
+	}
+	var resultClientNoPrice = jobs.Jobs{
+		ID:         1,
+		Foto:       "worker.jpg",
+		WorkerName: "Paijo",
+		Category:   "Plumber",
+
+		StartDate: "2023-12-25",
+		EndDate:   "2023-12-25",
+		Price:     300000,
+		Deskripsi: "Mas, tolong benerin sambungan pipa ke wastafel",
+		Status:    "accepted",
+		Note:      "oke mas",
 		Address:   "Jl.Setiabudi nomor 3",
 	}
 	var resultWorker = jobs.Jobs{
@@ -345,6 +379,13 @@ func TestUpdateJob(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, resultClient, proses)
 	})
+	t.Run("Success Case Client No Price", func(t *testing.T) {
+		repo.On("UpdateJob", reqBodyAccClient).Return(resultClientNoPrice, nil).Once()
+		proses, err := srv.UpdateJob(reqBodyAccClient)
+		repo.AssertExpectations(t)
+		assert.Nil(t, err)
+		assert.Equal(t, resultClientNoPrice, proses)
+	})
 	t.Run("Success Case Acc", func(t *testing.T) {
 		repo.On("UpdateJob", reqBodyAcc).Return(resultAcc, nil).Once()
 		proses, err := srv.UpdateJob(reqBodyAcc)
@@ -354,11 +395,19 @@ func TestUpdateJob(t *testing.T) {
 	})
 
 	t.Run("Failed Case no ID", func(t *testing.T) {
-		repo.On("UpdateJob", reqBodyNoID).Return(jobs.Jobs{}, errors.New("A"))
+		repo.On("UpdateJob", reqBodyNoID).Return(jobs.Jobs{}, errors.New("tidak ditemukan jobs"))
 		result, err := srv.UpdateJob(reqBodyNoID)
 		repo.AssertExpectations(t)
 		assert.Equal(t, result, jobs.Jobs{})
-		assert.Equal(t, err, errors.New("A"))
+		assert.Equal(t, err, errors.New("tidak ditemukan jobs"))
+	})
+
+	t.Run("Failed Case no Role", func(t *testing.T) {
+		repo.On("UpdateJob", reqBodyNoRole).Return(jobs.Jobs{}, errors.New("masukkan role, 403"))
+		result, err := srv.UpdateJob(reqBodyNoRole)
+		repo.AssertExpectations(t)
+		assert.Equal(t, result, jobs.Jobs{})
+		assert.Equal(t, err, errors.New("masukkan role, 403"))
 	})
 
 	t.Run("Failed Case accepted", func(t *testing.T) {
@@ -409,7 +458,7 @@ func TestGetJobs(t *testing.T) {
 				Foto:       "lazu.jpg",
 				StartDate:  "25-12-2023",
 				EndDate:    "25-12-2023",
-				Price:      0,
+				Price:      5000000,
 				Status:     "finished",
 			},
 		}
@@ -425,83 +474,83 @@ func TestGetJobs(t *testing.T) {
 		assert.Nil(t, err)
 
 	})
-	// t.Run("succes with param", func(t *testing.T) {
-	// 	succesReturn := []jobs.Jobs{
+	t.Run("succes with param", func(t *testing.T) {
+		succesReturn := []jobs.Jobs{
 
-	// 		{
-	// 			ID:         30,
-	// 			WorkerName: "Lazuardi",
-	// 			ClientName: "Johan",
-	// 			Category:   "CCTV",
-	// 			Foto:       "lazu.jpg",
-	// 			StartDate:  "25-12-2023",
-	// 			EndDate:    "25-12-2023",
-	// 			Price:      0,
-	// 			Status:     "finished",
-	// 		},
-	// 	}
-	// 	succesReturnN := []jobs.Jobs{
-	// 		{
-	// 			ID:         32,
-	// 			WorkerName: "Julian",
-	// 			ClientName: "Johan",
-	// 			Category:   "Service AC",
-	// 			Foto:       "julian.png",
-	// 			StartDate:  "25-12-2023",
-	// 			EndDate:    "25-12-2023",
-	// 			Price:      500000,
-	// 			Status:     "accepted",
-	// 		},
-	// 		{
-	// 			ID:         31,
-	// 			WorkerName: "Paijo",
-	// 			ClientName: "Johan",
-	// 			Category:   "Plumber",
-	// 			Foto:       "paijo.jpg",
-	// 			StartDate:  "25-12-2023",
-	// 			EndDate:    "25-12-2023",
-	// 			Price:      0,
-	// 			Status:     "pending",
-	// 		},
-	// 		{
-	// 			ID:         30,
-	// 			WorkerName: "Lazuardi",
-	// 			ClientName: "Johan",
-	// 			Category:   "CCTV",
-	// 			Foto:       "lazu.jpg",
-	// 			StartDate:  "25-12-2023",
-	// 			EndDate:    "25-12-2023",
-	// 			Price:      5000000,
-	// 			Status:     "finished",
-	// 		},
-	// 	}
-	// 	count := 3
-	// 	countB := 1
-	// 	page := 1
-	// 	pagesize := 10
-	// 	status := "finished"
+			{
+				ID:         30,
+				WorkerName: "Lazuardi",
+				ClientName: "Johan",
+				Category:   "CCTV",
+				Foto:       "lazu.jpg",
+				StartDate:  "25-12-2023",
+				EndDate:    "25-12-2023",
+				Price:      5000000,
+				Status:     "finished",
+			},
+		}
+		succesReturnN := []jobs.Jobs{
+			{
+				ID:         32,
+				WorkerName: "Julian",
+				ClientName: "Johan",
+				Category:   "Service AC",
+				Foto:       "julian.png",
+				StartDate:  "25-12-2023",
+				EndDate:    "25-12-2023",
+				Price:      500000,
+				Status:     "accepted",
+			},
+			{
+				ID:         31,
+				WorkerName: "Paijo",
+				ClientName: "Johan",
+				Category:   "Plumber",
+				Foto:       "paijo.jpg",
+				StartDate:  "25-12-2023",
+				EndDate:    "25-12-2023",
+				Price:      0,
+				Status:     "pending",
+			},
+			{
+				ID:         30,
+				WorkerName: "Lazuardi",
+				ClientName: "Johan",
+				Category:   "CCTV",
+				Foto:       "lazu.jpg",
+				StartDate:  "25-12-2023",
+				EndDate:    "25-12-2023",
+				Price:      5000000,
+				Status:     "finished",
+			},
+		}
+		count := 3
+		countB := 1
+		page := 1
+		pagesize := 10
+		status := "finished"
 
-	// 	// repo.On("GetJobs", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
-	// 	repo.On("GetJobsByStatus", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
-	// 	repo.Mock.On("GetJobsByStatus", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
-	// 	repo.Mock.On("GetJobs", clientID, "client", page, pagesize).Return(succesReturnN, count, nil)
-	// 	result, x, err := srv.GetJobs(clientID, "client", status, page, pagesize)
-	// 	hasil, y, arr := repo.GetJobs(clientID, "client", page, pagesize)
-	// 	aa, bb, cc := repo.GetJobsByStatus(clientID, "client", status, page, pagesize)
-	// 	repo.AssertExpectations(t)
-	// 	assert.Equal(t, result, succesReturn)
-	// 	assert.Equal(t, hasil, succesReturnN)
+		// repo.On("GetJobs", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
+		repo.On("GetJobsByStatus", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
+		repo.Mock.On("GetJobsByStatus", clientID, "client", status, page, pagesize).Return(succesReturn, countB, nil)
+		repo.Mock.On("GetJobs", clientID, "client", page, pagesize).Return(succesReturnN, count, nil)
+		result, x, err := srv.GetJobs(clientID, "client", status, page, pagesize)
+		hasil, y, arr := repo.GetJobs(clientID, "client", page, pagesize)
+		aa, bb, cc := repo.GetJobsByStatus(clientID, "client", status, page, pagesize)
+		repo.AssertExpectations(t)
+		assert.Equal(t, result, succesReturn)
+		assert.Equal(t, hasil, succesReturnN)
 
-	// 	assert.Equal(t, x, countB)
-	// 	assert.Equal(t, y, count)
+		assert.Equal(t, x, countB)
+		assert.Equal(t, y, count)
 
-	// 	assert.Nil(t, err)
-	// 	assert.Nil(t, arr)
+		assert.Nil(t, err)
+		assert.Nil(t, arr)
 
-	// 	assert.Equal(t, aa, succesReturn)
-	// 	assert.Equal(t, bb, countB)
-	// 	assert.Nil(t, cc)
-	// })
+		assert.Equal(t, aa, succesReturn)
+		assert.Equal(t, bb, countB)
+		assert.Nil(t, cc)
+	})
 	t.Run("false id", func(t *testing.T) {
 		var falseID uint = 4
 		page := 1
@@ -528,65 +577,64 @@ func TestGetJobs(t *testing.T) {
 		assert.Equal(t, x, count)
 		assert.Nil(t, result)
 	})
-	// t.Run("false role 2", func(t *testing.T) {
+	t.Run("no role", func(t *testing.T) {
 
-	// 	page := 1
-	// 	pagesize := 10
-	// 	count := 0
-	// 	repo.Mock.On("GetJobsByStatus", workerID, " ", "finished", page, pagesize).Return(nil, count, errors.New("kesalahan pada role"))
-	// 	repo.On("GetJobsByStatus", workerID, " ", "finished", page, pagesize).Return(nil, count, errors.New("kesalahan pada role"))
+		page := 1
+		pagesize := 10
+		count := 0
+		repo.On("GetJobs", clientID, "", page, pagesize).Return(nil, count, errors.New("kesalahan pada role"))
+		result, x, err := repo.GetJobs(clientID, "", page, pagesize)
 
-	// 	result, x, err := msrv.GetJobs(workerID, " ", "finished", page, pagesize)
-
-	// 	repo.AssertExpectations(t)
-	// 	assert.Equal(t, err, errors.New("kesalahan pada role"))
-	// 	assert.Equal(t, x, count)
-	// 	assert.Nil(t, result)
+		repo.AssertExpectations(t)
+		assert.Equal(t, err, errors.New("kesalahan pada role"))
+		assert.Equal(t, x, count)
+		assert.Nil(t, result)
+	})
 	// })
 	t.Run("succes with param worker", func(t *testing.T) {
 		succesReturn := []jobs.Jobs{
 
 			{
-				ID:         99,
-				WorkerName: "Paijo",
-				ClientName: "Arman",
+				ID:         30,
+				WorkerName: "Lazuardi",
+				ClientName: "Johan",
 				Category:   "CCTV",
-				Foto:       "arman.jpg",
+				Foto:       "lazu.jpg",
 				StartDate:  "25-12-2023",
 				EndDate:    "25-12-2023",
-				Price:      5000000,
+				Price:      0,
 				Status:     "finished",
 			},
 		}
 		succesReturnN := []jobs.Jobs{
 			{
-				ID:         88,
-				WorkerName: "Paijo",
-				ClientName: "Malik",
+				ID:         32,
+				WorkerName: "Julian",
+				ClientName: "Johan",
 				Category:   "Service AC",
-				Foto:       "malik.png",
+				Foto:       "julian.png",
 				StartDate:  "25-12-2023",
 				EndDate:    "25-12-2023",
 				Price:      500000,
 				Status:     "accepted",
 			},
 			{
-				ID:         77,
+				ID:         31,
 				WorkerName: "Paijo",
-				ClientName: "Hafidz",
+				ClientName: "Johan",
 				Category:   "Plumber",
-				Foto:       "hafidz.jpg",
+				Foto:       "paijo.jpg",
 				StartDate:  "25-12-2023",
 				EndDate:    "25-12-2023",
 				Price:      0,
 				Status:     "pending",
 			},
 			{
-				ID:         99,
+				ID:         30,
 				WorkerName: "Lazuardi",
-				ClientName: "Arman",
+				ClientName: "Johan",
 				Category:   "CCTV",
-				Foto:       "arman.jpg",
+				Foto:       "lazu.jpg",
 				StartDate:  "25-12-2023",
 				EndDate:    "25-12-2023",
 				Price:      5000000,
@@ -619,5 +667,20 @@ func TestGetJobs(t *testing.T) {
 		assert.Equal(t, aa, succesReturn)
 		assert.Equal(t, bb, countB)
 		assert.Nil(t, cc)
+	})
+	t.Run("Success Zero result", func(t *testing.T) {
+
+		countB := 0
+		page := 1
+		pagesize := 10
+		status := "rejected"
+		repo.On("GetJobsByStatus", workerID, "worker", status, page, pagesize).Return([]jobs.Jobs{}, countB, nil)
+		repo.Mock.On("GetJobsByStatus", workerID, "worker", status, page, pagesize).Return([]jobs.Jobs{}, countB, nil)
+		result, x, err := srv.GetJobs(workerID, "worker", status, page, pagesize)
+		repo.AssertExpectations(t)
+		assert.Equal(t, x, countB)
+		assert.Equal(t, result, []jobs.Jobs{})
+
+		assert.Nil(t, err)
 	})
 }
