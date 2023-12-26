@@ -207,7 +207,7 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
 		if err := jq.db.
-			Where("worker_id = ?", userID).Order("updated_at desc").
+			Where("client_id = ?", userID).Order("updated_at desc").
 			Find(&prePagination).
 			Count(&totalCount).Error; err != nil {
 			if strings.Contains(err.Error(), "not found") {
@@ -341,7 +341,7 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			return nil, 0, errors.New("salah token")
 		}
 		if err := jq.db.
-			Where("worker_id = ?", userID).Order("updated_at desc").
+			Where("client_id = ?", userID).Order("updated_at desc").
 			Find(&prePagination).
 			Count(&totalCount).Error; err != nil {
 			if strings.Contains(err.Error(), "not found") {
