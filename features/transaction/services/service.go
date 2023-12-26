@@ -33,6 +33,9 @@ func (at *TransactionService) AddTransaction(token *golangjwt.Token, JobID uint,
 
 func (ct *TransactionService) CheckTransaction(transactionID uint) (transaction.Transaction, error) {
 	result, err := ct.repo.CheckTransaction(transactionID)
+	if err != nil {
+		return transaction.Transaction{}, err
+	}
 	return *result, err
 }
 
