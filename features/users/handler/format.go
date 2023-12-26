@@ -63,6 +63,7 @@ type UserResponseUpdate struct {
 	Role     string      `json:"role" form:"role"`
 	Skill    []UserSkill `json:"skill" form:"skill"`
 	Job      []UserJob   `json:"job" form:"job"`
+	JobCount int         `json:"job_count"`
 }
 
 type GetUserResponse struct {

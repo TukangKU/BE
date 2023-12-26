@@ -152,7 +152,7 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 func (gu *userQuery) GetUserByID(idUser uint) (users.Users, error) {
 	var result UserModel
 
-	if err := gu.db.Preload("Skill").Where("id = ?", idUser).Find(&result).Error; err != nil {
+	if err := gu.db.Preload("Skill").Preload("Job").Preload("Job.CategoryModel").Where("id = ?", idUser).Find(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return users.Users{}, errors.New("user not found")
 		}
@@ -168,12 +168,28 @@ func (gu *userQuery) GetUserByID(idUser uint) (users.Users, error) {
 		Foto:     result.Foto,
 		UserName: result.UserName,
 		Role:     result.Role,
-	}
-	for _, v := range result.Skill {
-		response.Skill = append(response.Skill, skill.Skills{
-			ID:        v.ID,
-			NamaSkill: v.NamaSkill,
-		})
+		Skill: func() []skill.Skills {
+			var skl []skill.Skills
+			for _, s := range result.Skill {
+				skl = append(skl, skill.Skills{
+					ID:        s.ID,
+					NamaSkill: s.NamaSkill,
+				})
+			}
+			return skl
+		}(),
+		Job: func() []jobs.Jobs {
+			var skl []jobs.Jobs
+			for _, s := range result.Job {
+				skl = append(skl, jobs.Jobs{
+					ID:       s.ID,
+					Price:    s.Price,
+					Category: s.CategoryModel.NamaSkill,
+				})
+			}
+			return skl
+		}(),
+		JobCount: len(result.Job),
 	}
 
 	return response, nil
@@ -198,7 +214,6 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 		Find(&result).Error; err != nil {
 		return []users.Users{}, 0, err
 	}
-
 
 	var response []users.Users
 	for _, v := range result {
