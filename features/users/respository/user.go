@@ -208,6 +208,7 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 		tmp.UserName = v.UserName
 		tmp.Alamat = v.Alamat
 		tmp.Foto = v.Foto
+		tmp.Email = v.Email
 		for _, v := range v.Skill {
 			tmp.Skill = append(tmp.Skill, skill.Skills{
 				ID:        v.ID,

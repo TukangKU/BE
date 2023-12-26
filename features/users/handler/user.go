@@ -326,6 +326,8 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 				Nama:     v.Nama,
 				UserName: v.UserName,
 				Alamat:   v.Alamat,
+				Email:    v.Email,
+				Foto:     v.Foto,
 				Skill: func() []UserSkill {
 					var skill []UserSkill
 					for _, s := range v.Skill {
