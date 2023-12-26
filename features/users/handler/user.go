@@ -280,6 +280,19 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 				}
 				return skill
 			}(),
+			Job: func() []UserJob {
+				var skill []UserJob
+				for _, s := range results.Job {
+					skill = append(skill, UserJob{
+						JobID:    s.ID,
+						Price:    s.Price,
+						Category: s.Category,
+					})
+				}
+				return skill
+			}(),
+			JobCount: results.JobCount,
+			
 		}
 
 		return c.JSON(http.StatusOK, map[string]interface{}{
