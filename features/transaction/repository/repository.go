@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	job "tukangku/features/jobs/repository"
 	"tukangku/features/transaction"
+	user "tukangku/features/users/respository"
 	"tukangku/helper/midtrans"
 
 	"gorm.io/gorm"
@@ -19,6 +21,8 @@ type Transaction struct {
 	Status     string
 	Token      string
 	Url        string
+	User       user.UserModel `gorm:"foreignKey:UserID"`
+	Job        job.JobModel   `gorm:"foreignKey:JobID"`
 }
 
 type TransactionQuery struct {
@@ -44,10 +48,20 @@ func (at *TransactionQuery) AddTransaction(userID uint, JobID uint, JobPrice uin
 	var id = strconv.Itoa(int(input.ID))
 	input.NoInvoice = "TUKANGKU-ID-" + id
 
-	midtrans := midtrans.MidtransCreateToken(int(input.ID), int(JobPrice))
+	var usr = new(user.UserModel)
+	if err := at.db.First(usr, input.UserID).Error; err != nil {
+		return transaction.Transaction{}, err
+	}
+
+	var jb = new(job.JobModel)
+	if err := at.db.Preload("CategoryModel").First(jb, input.JobID).Error; err != nil {
+		return transaction.Transaction{}, err
+	}
+
+	midtrans := midtrans.MidtransCreateToken(int(input.ID), int(JobPrice), usr.Nama, usr.Email, jb.CategoryModel.NamaSkill, usr.NoHp)
 
 	fmt.Println("Redirect URL:", midtrans.RedirectURL)
-    fmt.Println("Token:", midtrans.Token)
+	fmt.Println("Token:", midtrans.Token)
 
 	input.Url = midtrans.RedirectURL
 	input.Token = midtrans.Token
@@ -68,7 +82,6 @@ func (at *TransactionQuery) AddTransaction(userID uint, JobID uint, JobPrice uin
 
 }
 
-// CheckTransaction implements transaction.Repository.
 func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.Transaction, error) {
 	var transactions Transaction
 	if err := ct.db.First(&transactions, transactionID).Error; err != nil {
@@ -80,12 +93,7 @@ func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.T
 		return nil, err
 	}
 
-	// status := midtrans.MidtransStatus(int(transactionID))
-	// transactions.Status = status
-
-	// if err := ct.db.Save(&transactions).Error; err != nil {
-	// 	return nil, err
-	// }
+	
 	if transactions.ID == 0 {
 		err := errors.New("no transactions")
 		return nil, err
