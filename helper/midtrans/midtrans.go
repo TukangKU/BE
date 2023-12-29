@@ -10,7 +10,7 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
+func MidtransCreateToken(orderID int, TotalPrice int, namaCustomer string, email string, jobName string, noHp string) *snap.Response {
 	var s = snap.Client{}
 	s.New(config.InitConfig().MIDTRANS_SERVER_KEY, midtrans.Sandbox)
 	id := strconv.Itoa(orderID)
@@ -22,6 +22,18 @@ func MidtransCreateToken(orderID int, TotalPrice int) *snap.Response {
 		},
 		CreditCard: &snap.CreditCardDetails{
 			Secure: true,
+		},
+		CustomerDetail: &midtrans.CustomerDetails{
+			FName: namaCustomer,
+			Email: email,
+			Phone: noHp,
+		},
+		Items: &[]midtrans.ItemDetails{
+			{
+				Name:  jobName,
+				Price: int64(TotalPrice),
+				Qty:   1,
+			},
 		},
 	}
 
