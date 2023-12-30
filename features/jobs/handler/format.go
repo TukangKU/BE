@@ -22,6 +22,7 @@ type CreateResponse struct {
 	Deskripsi string `json:"deskripsi"`
 	Status    string `json:"status"`
 	Address   string `json:"alamat"`
+	NoHp      string `json:"nohp"`
 }
 
 type UpdateRequest struct {
@@ -48,12 +49,12 @@ type GetJobResponse struct {
 	WorkerName string `json:"worker_name"`
 	ClientName string `json:"client_name"`
 	Foto       string `json:"foto"`
-
-	StartDate string `json:"start_date"`
-	EndDate   string `json:"end_date"`
-	Address   string `json:"alamat"`
-	Price     int    `json:"harga"`
-	Deskripsi string `json:"deskripsi"`
-	Note      string `json:"note_negosiasi"`
-	Status    string `json:"status"`
+	NoHp       string `json:"nohp"`
+	StartDate  string `json:"start_date"`
+	EndDate    string `json:"end_date"`
+	Address    string `json:"alamat"`
+	Price      int    `json:"harga"`
+	Deskripsi  string `json:"deskripsi"`
+	Note       string `json:"note_negosiasi"`
+	Status     string `json:"status"`
 }

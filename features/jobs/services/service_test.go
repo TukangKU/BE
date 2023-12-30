@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 	"tukangku/features/jobs"
+	"tukangku/features/jobs/mocks"
 	"tukangku/features/jobs/services"
-	"tukangku/features/mocks"
 
 	"github.com/stretchr/testify/assert"
 )

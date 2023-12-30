@@ -107,9 +107,9 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	}
 
 	var response = jobs.Jobs{
-		ID:   input.ID,
-		Foto: worker.Foto,
-
+		ID:         input.ID,
+		Foto:       worker.Foto,
+		NoHp:       worker.NoHp,
 		WorkerName: worker.Nama,
 		ClientID:   input.ClientID,
 		Category:   skill.NamaSkill,
@@ -422,8 +422,10 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 	// foto
 	if role == "client" {
 		output.Foto = worker.Foto
+		output.NoHp = worker.NoHp
 	} else if role == "worker" {
 		output.Foto = client.Foto
+		output.NoHp = client.NoHp
 	}
 	output.ID = proses.ID
 
@@ -508,8 +510,10 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	output.ID = proses.ID
 	if update.Role == "client" {
 		output.Foto = worker.Foto
+		output.NoHp = worker.NoHp
 	} else if update.Role == "worker" {
 		output.Foto = client.Foto
+		output.NoHp = client.NoHp
 	}
 
 	output.WorkerName = worker.Nama
