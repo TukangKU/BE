@@ -19,6 +19,7 @@ type Jobs struct {
 	Note       string `json:"note_negosiasi"`
 	Status     string `json:"status"`
 	Address    string `json:"alamat"`
+	NoHp       string `json:"nohp"`
 }
 
 type Handler interface {
