@@ -83,6 +83,7 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		response.Deskripsi = result.Deskripsi
 		response.Status = result.Status
 		response.Address = result.Address
+		response.NoHp = result.NoHp
 		// fmt.Println(result, "handler")
 		return responses.PrintResponse(c, http.StatusCreated, "success create data", response)
 
@@ -236,7 +237,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		response.Deskripsi = result.Deskripsi
 		response.Note = result.Note
 		response.Status = result.Status
-
+		response.NoHp = result.NoHp
 		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 	}
 }
@@ -313,6 +314,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 		response.Deskripsi = result.Deskripsi
 		response.Note = result.Note
 		response.Status = result.Status
+		response.NoHp = result.NoHp
 		// fmt.Println(result, "handler")
 		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 
