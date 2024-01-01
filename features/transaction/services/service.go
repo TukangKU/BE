@@ -19,7 +19,6 @@ func New(r transaction.Repository) transaction.Service {
 	}
 }
 
-// AddTransaction implements transaction.Service.
 func (at *TransactionService) AddTransaction(token *golangjwt.Token, JobID uint, JobPrice uint) (transaction.Transaction, error) {
 	userID, err := jwt.ExtractToken(token)
 	if err != nil {
