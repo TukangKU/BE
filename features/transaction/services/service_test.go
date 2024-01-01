@@ -6,12 +6,13 @@ import (
 	"tukangku/features/transaction"
 	"tukangku/features/transaction/mocks"
 	"tukangku/features/transaction/services"
+
 	"github.com/stretchr/testify/assert"
 
 	"tukangku/helper/jwt"
+
 	gojwt "github.com/golang-jwt/jwt/v5"
 )
-
 
 var userID = uint(1)
 var role = "worker"
@@ -23,26 +24,15 @@ var invalidToken, _ = gojwt.Parse(str, func(t *gojwt.Token) (interface{}, error)
 	return []byte("$!1gnK3xxx!!!"), nil
 })
 
-
-
-
 func TestAddTransaction(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	s := services.New(repo)
 
-	// userID := uint(1)
-	// jobID := uint(2)
-	// jobPrice := uint(10000)
-
-
-	// var repoData = transaction.Transaction{ID: 1, NoInvoice: "TUKANGKU-01", TotalPrice: 200000, Url: "www.url.com"}
-	// var falseData = transaction.Transaction{}
-
 	t.Run("Success", func(t *testing.T) {
 		mockTransaction := transaction.Transaction{
-			ID: 1,
-			JobID: 2,
-			NoInvoice: "TUKANGKU-01",
+			ID:         1,
+			JobID:      2,
+			NoInvoice:  "TUKANGKU-01",
 			TotalPrice: 10000,
 		}
 
@@ -53,41 +43,26 @@ func TestAddTransaction(t *testing.T) {
 		repo.AssertExpectations(t)
 
 		assert.NoError(t, err)
-		// assert.Equal(t, jobID, result.JobID)
-		// assert.Equal(t, jobPrice, result.TotalPrice)
 		assert.Equal(t, mockTransaction, result)
 	})
 
 	t.Run("InvalidToken", func(t *testing.T) {
 
 		mockTransaction := transaction.Transaction{
-			ID: 1,
-			JobID: 2,
-			NoInvoice: "TUKANGKU-01",
+			ID:         1,
+			JobID:      2,
+			NoInvoice:  "TUKANGKU-01",
 			TotalPrice: 10000,
 		}
 
-		
-
 		result, err := s.AddTransaction(invalidToken, mockTransaction.JobID, mockTransaction.TotalPrice)
 
-
 		assert.Error(t, err)
-		// assert.Equal(t, jobID, result.JobID)
-		// assert.Equal(t, jobPrice, result.TotalPrice)
 		assert.Equal(t, transaction.Transaction{}, result)
-		
 
 	})
 
-	
 }
-
-
-
-
-
-
 
 func TestCheckTransaction(t *testing.T) {
 	repo := mocks.NewRepository(t)
@@ -105,7 +80,7 @@ func TestCheckTransaction(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		
+
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {
@@ -129,8 +104,6 @@ func TestCheckTransaction(t *testing.T) {
 		assert.Equal(t, "transaction not found", err.Error())
 	})
 }
-
-
 
 func TestCallBack(t *testing.T) {
 	t.Run("ErrorFromRepository", func(t *testing.T) {
@@ -170,8 +143,7 @@ func TestCallBack(t *testing.T) {
 
 		service := services.New(repo)
 
-		expectedResult := &transaction.TransactionList{
-		}
+		expectedResult := &transaction.TransactionList{}
 		repo.On("CallBack", "invoice123").Return(expectedResult, nil)
 
 		result, err := service.CallBack("invoice123")
