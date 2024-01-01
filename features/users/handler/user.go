@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -41,9 +40,10 @@ func (ur *userController) Register() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(RegisterRequest)
 		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "input yang di berikan tidak sesuai",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"input yang di berikan tidak sesuai",
+				nil)
 		}
 		var inputProcess = new(users.Users)
 		inputProcess.UserName = input.UserName
@@ -51,43 +51,27 @@ func (ur *userController) Register() echo.HandlerFunc {
 		inputProcess.Password = input.Password
 		inputProcess.Role = input.Role
 
-		if inputProcess.UserName == "" {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "masukkan username",
-			})
-		}
-
-		if inputProcess.Email == "" {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "masukkan email",
-			})
-		}
-
-		if inputProcess.Password == "" {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "masukkan password",
-			})
-		}
-
-		if inputProcess.Role == "" {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "masukkan role",
-			})
-		}
-
 		result, err := ur.srv.Register(*inputProcess)
 
 		if err != nil {
-			c.Logger().Error("ERROR Register, explain:", err.Error())
-			var statusCode = http.StatusInternalServerError
-			var message = "terjadi permasalahan ketika memproses data"
+			c.Logger().Error(err)
 
-			if strings.Contains(err.Error(), "terdaftar") {
-				statusCode = http.StatusBadRequest
-				message = "data yang diinputkan sudah terdaftar ada sistem"
+			if strings.Contains(err.Error(), "harus di isi") {
+				return responses.PrintResponse(
+					c, http.StatusBadRequest,
+					strings.ReplaceAll(err.Error(), "", ""),
+					nil)
 			}
-
-			return responses.PrintResponse(c, statusCode, message, nil)
+			if strings.Contains(err.Error(), "duplicate entry") {
+				return responses.PrintResponse(
+					c, http.StatusConflict,
+					"data sudah ada",
+					nil)
+			}
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"internal server error",
+				nil)
 		}
 
 		var responsess = new(RegisterResponse)
@@ -96,7 +80,10 @@ func (ur *userController) Register() echo.HandlerFunc {
 		responsess.Email = result.Email
 		responsess.Role = result.Role
 
-		return responses.PrintResponse(c, http.StatusCreated, "success create data", responsess)
+		return responses.PrintResponse(
+			c, http.StatusCreated,
+			"success create data",
+			responsess)
 	}
 }
 
@@ -104,43 +91,65 @@ func (ul *userController) Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(LoginRequest)
 		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "input yang diberikan tidak sesuai",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"input yang diberikan tidak sesuai",
+				nil)
 		}
 
 		result, err := ul.srv.Login(input.Email, input.Password)
 
 		if err != nil {
-			c.Logger().Error("ERROR Login, explain:", err.Error())
-			if strings.Contains(err.Error(), "not found") {
-				return c.JSON(http.StatusBadRequest, map[string]any{
-					"message": "data yang diinputkan tidak ditemukan",
-				})
+			c.Logger().Error(err)
+
+			if strings.Contains(err.Error(), "harus di isi") {
+				return responses.PrintResponse(
+					c, http.StatusBadGateway,
+					strings.ReplaceAll(err.Error(), "", ""),
+					nil)
 			}
-			return c.JSON(http.StatusInternalServerError, map[string]any{
-				"message": "terjadi permasalahan ketika memproses data",
-			})
+
+			if strings.Contains(err.Error(), "record not found") {
+				return responses.PrintResponse(
+					c, http.StatusNotFound,
+					"record not found",
+					nil)
+			}
+
+			if strings.Contains(err.Error(), "password salah") {
+				return responses.PrintResponse(
+					c, http.StatusUnauthorized,
+					"password salah",
+					nil)
+			}
+
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"internal server error",
+				nil)
+
 		}
 
 		strToken, err := jwt.GenerateJWT(result.ID, result.Role)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]any{
-				"message": "terjadi permasalahan ketika mengenkripsi data",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"terjadi permasalahan ketika mengenkripsi data",
+				nil)
 		}
 
-		var responses = new(LoginResponse)
-		responses.ID = result.ID
-		responses.UserName = result.UserName
-		responses.Email = result.Email
-		responses.Role = result.Role
-		responses.Token = strToken
+		var response = new(LoginResponse)
+		response.ID = result.ID
+		response.UserName = result.UserName
+		response.Email = result.Email
+		response.Role = result.Role
+		response.Token = strToken
 
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "success create data",
-			"data":    responses,
-		})
+		
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"success create data",
+			response)
 	}
 }
 
@@ -149,9 +158,10 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 		userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		var input = new(UserUpdate)
 		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"massage": "invalid input",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"invalid input",
+				nil)
 		}
 
 		formHeader, _ := c.FormFile("foto")
@@ -162,24 +172,24 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 
 			formFile, err := formHeader.Open()
 			if err != nil {
-				return c.JSON(
-					http.StatusInternalServerError, map[string]any{
-						"message": "formfile error",
-					})
+				return responses.PrintResponse(
+					c, http.StatusInternalServerError,
+					"formfile error",
+					nil)
 			}
 
 			link, err = cld.UploadImage(us.cl, us.ct, formFile, us.folder)
 			if err != nil {
 				if strings.Contains(err.Error(), "not found") {
-					return c.JSON(http.StatusBadRequest, map[string]any{
-						"message": "harap pilih gambar",
-						"data":    nil,
-					})
+					return responses.PrintResponse(
+						c, http.StatusBadRequest,
+						"harap pilih gambar",
+						nil)
 				} else {
-					return c.JSON(http.StatusInternalServerError, map[string]any{
-						"message": "kesalahan pada server",
-						"data":    nil,
-					})
+					return responses.PrintResponse(
+						c, http.StatusInternalServerError,
+						"kesalahan pada server",
+						nil)
 				}
 			}
 
@@ -203,9 +213,10 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 		result, err := us.srv.UpdateUser(userID, updatedCient)
 		if err != nil {
 			c.Logger().Error("ERROR UpdateUser, explain:", err.Error())
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "failed to update user",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"failed to update user",
+				nil)
 		}
 
 		result.Foto = link
@@ -230,21 +241,21 @@ func (us *userController) UpdateUser() echo.HandlerFunc {
 			return skill
 		}()
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "posting updated successfully",
-			"data":    response,
-		})
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"posting update successfully",
+			response)
 	}
 }
 
 func (gu *userController) GetUserByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// userID, _ := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		userID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "invalid id",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"invalid ID",
+				nil)
 		}
 
 		results, err := gu.srv.GetUserByID(uint(userID))
@@ -252,14 +263,16 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 			c.Logger().Error("ERROR GetByID, explain:", err.Error())
 
 			if strings.Contains(err.Error(), "not found") {
-				return c.JSON(http.StatusNotFound, map[string]interface{}{
-					"message": "Posting not found",
-				})
+				return responses.PrintResponse(
+					c, http.StatusNotFound,
+					"posting not found",
+					nil)
 			}
 
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "Error retrieving Posting by ID",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"error retrieving posting by id",
+				nil)
 		}
 		response := UserResponseUpdate{
 			ID:       results.ID,
@@ -292,13 +305,12 @@ func (gu *userController) GetUserByID() echo.HandlerFunc {
 				return skill
 			}(),
 			JobCount: results.JobCount,
-			
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get data by ID",
-			"data":    response,
-		})
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"success get data by id",
+			response)
 	}
 }
 
@@ -306,9 +318,10 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		skillID, err := strconv.Atoi(c.QueryParam("skill"))
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "invalid skill id",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"invalid skill id",
+				nil)
 		}
 
 		page, err := strconv.Atoi(c.QueryParam("page"))
@@ -325,9 +338,10 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error("ERROR GetUserBySkill, explain:", err.Error())
 
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "Error retrieving users by skill",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"error retrieving users by skill",
+				nil)
 		}
 
 		totalPages := int(math.Ceil(float64(totalCount) / float64(pageSize)))
@@ -356,78 +370,16 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 
 		}
 
-		fmt.Println("response user =", responsess)
-
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get data by ID",
-			"data":    responsess,
-			"pagination": map[string]interface{}{
-				"skill":      skillID,
-				"page":       page,
-				"pagesize":   pageSize,
-				"totalPages": totalPages},
-		})
-	}
-}
-
-func (tk *userController) TakeWorker() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userID, err := strconv.Atoi(c.QueryParam("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "invalid id",
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"success get data by id",
+			map[string]interface{}{
+				"data": responsess,
+				"pagination": map[string]interface{}{
+					"page":       page,
+					"pagesize":   pageSize,
+					"totalpages": totalPages,
+				},
 			})
-		}
-
-		results, err := tk.srv.TakeWorker(uint(userID))
-		if err != nil {
-			c.Logger().Error("ERROR GetByID, explain:", err.Error())
-
-			if strings.Contains(err.Error(), "not found") {
-				return c.JSON(http.StatusNotFound, map[string]interface{}{
-					"message": "Posting not found",
-				})
-			}
-
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "Error retrieving Posting by ID",
-			})
-		}
-		response := UserResponseUpdate{
-			ID:       results.ID,
-			UserName: results.UserName,
-			Nama:     results.Nama,
-			Email:    results.Email,
-			NoHp:     results.NoHp,
-			Alamat:   results.Alamat,
-			Role:     results.Role,
-			Foto:     results.Foto,
-			Skill: func() []UserSkill {
-				var skill []UserSkill
-				for _, s := range results.Skill {
-					skill = append(skill, UserSkill{
-						SkillID:   s.ID,
-						NamaSKill: s.NamaSkill,
-					})
-				}
-				return skill
-			}(),
-			Job: func() []UserJob {
-				var skill []UserJob
-				for _, s := range results.Job {
-					skill = append(skill, UserJob{
-						JobID:    s.ID,
-						Price:    s.Price,
-						Category: s.Category,
-					})
-				}
-				return skill
-			}(),
-		}
-
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success get data by ID",
-			"data":    response,
-		})
 	}
 }

@@ -26,22 +26,25 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(TransactionReq)
 		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "input yang diberikan tidak sesuai",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"input yang diberikan tidak sesuai",
+				nil)
 		}
 		result, err := at.s.AddTransaction(c.Get("user").(*gojwt.Token), input.JobID, input.JobPrice)
 
 		if err != nil {
 			c.Logger().Error("terjadi kesalahan", err.Error())
 			if strings.Contains(err.Error(), "duplicate") {
-				return c.JSON(http.StatusBadRequest, map[string]any{
-					"message": "dobel input nama",
-				})
+				return responses.PrintResponse(
+					c, http.StatusBadRequest,
+					"terjadi kesalahan input data",
+					nil)
 			}
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "transaction duplicate",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"transaction duplicate",
+				nil)
 		}
 
 		var response = new(TransactionRes)
@@ -52,11 +55,11 @@ func (at *TransactionHandler) AddTransaction() echo.HandlerFunc {
 		response.Status = result.Status
 		response.Url = result.Url
 		response.Token = result.Token
-		
-		return c.JSON(http.StatusCreated, map[string]any{
-			"message": "Transaction created successfully",
-			"data":    response,
-		})
+
+		return responses.PrintResponse(
+			c, http.StatusCreated,
+			"transaction created successfully",
+			response)
 
 	}
 }
@@ -65,17 +68,19 @@ func (ct *TransactionHandler) CheckTransaction() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		transactionID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "ID tidak valid",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"id tidak valid",
+				nil)
 		}
 		result, err := ct.s.CheckTransaction(uint(transactionID))
 
 		if err != nil {
 			c.Logger().Error("Error fetching : ", err.Error())
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "Failed to retrieve data",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"failed to retrieve data",
+				nil)
 		}
 
 		var response = new(TransactionRes)
@@ -85,30 +90,34 @@ func (ct *TransactionHandler) CheckTransaction() echo.HandlerFunc {
 		response.JobPrice = result.TotalPrice
 		response.Status = result.Status
 
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "Transaction Detail",
-			"data":    response,
-		})
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"transaction detail",
+			response)
 	}
 }
-
-
 
 func (cb *TransactionHandler) CallBack() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var input = new(CallBack)
 		if err := c.Bind(input); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"message": "input tidak sesuai",
-			})
+
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"input tidak sesuai",
+				nil)
 		}
 		result, err := cb.s.CallBack(input.OrderID)
 		if err != nil {
 			c.Logger().Error("something wrong: ", err.Error())
-			return c.JSON(http.StatusInternalServerError, map[string]any{
-				"message": "something wrong",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"something wrong",
+				nil)
 		}
-		return responses.PrintResponse(c, http.StatusOK, "Midtrans Callback", result)
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"Midtrans Callback",
+			result)
 	}
 }
