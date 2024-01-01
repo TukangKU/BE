@@ -142,7 +142,6 @@ func (us *userQuery) UpdateUser(idUser uint, updateWorker users.Users) (users.Us
 		Alamat:   exitingUser.Alamat,
 		Foto:     exitingUser.Foto,
 		UserName: exitingUser.UserName,
-		// Skills:   response,
 		Skill: response,
 	}
 	return result, nil
@@ -201,7 +200,7 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 
 	offset := (page - 1) * pageSize
 
-	if err := gu.db.Model(&UserModel{}).Count(&totalCount).Error; err != nil {
+	if err := gu.db.Model(&UserModel{}).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -211,7 +210,8 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 		Where("id IN (SELECT DISTINCT(user_model_id) as id FROM user_skills where skill_model_id = ?)", idSkill).
 		Offset(offset).
 		Limit(pageSize).
-		Find(&result).Error; err != nil {
+		Find(&result).
+		Count(&totalCount).Error; err != nil {
 		return []users.Users{}, 0, err
 	}
 
@@ -234,49 +234,4 @@ func (gu *userQuery) GetUserBySKill(idSkill uint, page, pageSize int) ([]users.U
 		response = append(response, *tmp)
 	}
 	return response, int(totalCount), nil
-}
-
-func (tk *userQuery) TakeWorker(idUser uint) (users.Users, error) {
-	var result UserModel
-
-	if err := tk.db.Preload("Skill").Preload("Job").Preload("Job.CategoryModel").Where("id = ?", idUser).Find(&result).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return users.Users{}, errors.New("user not found")
-		}
-		return users.Users{}, err
-	}
-
-	response := users.Users{
-		ID:       result.ID,
-		Nama:     result.Nama,
-		Email:    result.Email,
-		NoHp:     result.NoHp,
-		Alamat:   result.Alamat,
-		Foto:     result.Foto,
-		UserName: result.UserName,
-		Role:     result.Role,
-		Skill: func() []skill.Skills {
-			var skl []skill.Skills
-			for _, s := range result.Skill {
-				skl = append(skl, skill.Skills{
-					ID:        s.ID,
-					NamaSkill: s.NamaSkill,
-				})
-			}
-			return skl
-		}(),
-		Job: func() []jobs.Jobs {
-			var skl []jobs.Jobs
-			for _, s := range result.Job {
-				skl = append(skl, jobs.Jobs{
-					ID:       s.ID,
-					Price:    s.Price,
-					Category: s.CategoryModel.NamaSkill,
-				})
-			}
-			return skl
-		}(),
-	}
-
-	return response, nil
 }
