@@ -3,8 +3,7 @@ package skill
 import (
 	"net/http"
 	"tukangku/features/skill"
-
-	// golangjwt "github.com/golang-jwt/jwt/v5"
+	"tukangku/helper/responses"
 
 	echo "github.com/labstack/echo/v4"
 )
@@ -23,44 +22,44 @@ func (sh *SkillHandler) Add() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var inputSkill = new(SkillRequest)
 
-		// Bind the request body to the skill model
 		if err := c.Bind(&inputSkill); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"message": "invalid input",
-			})
+			return responses.PrintResponse(
+				c, http.StatusBadRequest,
+				"invalid input",
+				nil)
 		}
 
 		var inputProcess = new(skill.Skills)
 		inputProcess.NamaSkill = inputSkill.NamaSkill
 
-		// Call the service method to add the skill
 		result, err := sh.s.AddSkill(*inputProcess)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "failed to add skill",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"failed to add skill",
+				nil)
 		}
 
-		return c.JSON(http.StatusCreated, map[string]interface{}{
-			"message": "success adding skill",
-			"data":    result,
-		})
+		return responses.PrintResponse(
+			c, http.StatusCreated,
+			"success adding skill",
+			result)
 	}
 }
 
 func (sh *SkillHandler) Show() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Call the service method to retrieve all skills
 		skills, err := sh.s.ShowSkill()
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"message": "failed to retrieve skills",
-			})
+			return responses.PrintResponse(
+				c, http.StatusInternalServerError,
+				"failed to retrieve skills",
+				nil)
 		}
 
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"message": "success retrieving skills",
-			"data":    skills,
-		})
+		return responses.PrintResponse(
+			c, http.StatusOK,
+			"success retrieving skill",
+			skills)
 	}
 }

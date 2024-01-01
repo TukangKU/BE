@@ -8,9 +8,10 @@ import (
 	golangjwt "github.com/golang-jwt/jwt/v5"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-func CheckClient(next echo.HandlerFunc) echo.HandlerFunc{
+func CheckClient(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 
@@ -21,7 +22,7 @@ func CheckClient(next echo.HandlerFunc) echo.HandlerFunc{
 	}
 }
 
-func CheckWorker(next echo.HandlerFunc) echo.HandlerFunc{
+func CheckWorker(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userRole, _ := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 
@@ -30,4 +31,10 @@ func CheckWorker(next echo.HandlerFunc) echo.HandlerFunc{
 		}
 		return next(c)
 	}
+}
+
+func LogMiddleware(e *echo.Echo) {
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "\nhost=${host}, uri=${uri}, user_agent=${user_agent}, time=${time_rfc3339}, method=${method}, uri=${uri}, status=${status}, error=${error}\n",
+	}))
 }

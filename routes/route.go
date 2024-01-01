@@ -8,7 +8,6 @@ import (
 	"tukangku/features/users"
 	md "tukangku/helper/middleware"
 
-
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,7 +17,9 @@ func InitRute(e *echo.Echo, uh users.Handler, us skill.Handler, jh jobs.Handler,
 
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
-	e.Use(middleware.Logger())
+	md.LogMiddleware(e)
+
+	
 
 	routeUser(e, uh)
 	routeSkill(e, us)
@@ -34,10 +35,9 @@ func routeUser(e *echo.Echo, uh users.Handler) {
 	e.POST("/login", uh.Login())
 	e.PUT("/client/:id", uh.UpdateUser(), echojwt.JWT([]byte("$!1gnK3yyy!!!")), md.CheckClient)
 	e.PUT("/worker/:id", uh.UpdateUser(), echojwt.JWT([]byte("$!1gnK3yyy!!!")), md.CheckWorker)
-	e.GET("client/:id", uh.GetUserByID(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
-	e.GET("worker/:id", uh.GetUserByID(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
-	e.GET("/users/skill", uh.GetUserBySKill(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
-	e.GET("/takeworker", uh.TakeWorker(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("/client/:id", uh.GetUserByID(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("/worker/:id", uh.GetUserByID(), echojwt.JWT([]byte("$!1gnK3yyy!!!")))
+	e.GET("/worker", uh.GetUserBySKill())
 }
 
 func routeSkill(e *echo.Echo, us skill.Handler) {

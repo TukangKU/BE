@@ -20,8 +20,20 @@ func New(r users.Repository, h enkrip.HashInterface) users.Service {
 }
 
 func (ur *userService) Register(newUser users.Users) (users.Users, error) {
-	if newUser.Email == "" || newUser.Password == "" {
-		return users.Users{}, errors.New("incorrect inpu data")
+	if newUser.Email == ""  {
+		return users.Users{}, errors.New("email harus di isi")
+	}
+
+	if newUser.UserName == ""  {
+		return users.Users{}, errors.New("username harus di isi")
+	}
+
+	if newUser.Password == ""  {
+		return users.Users{}, errors.New("password harus di isi")
+	}
+
+	if newUser.Role == ""  {
+		return users.Users{}, errors.New("role harus di isi")
 	}
 
 	ePassword, err := ur.h.HashPassword(newUser.Password)
@@ -34,27 +46,25 @@ func (ur *userService) Register(newUser users.Users) (users.Users, error) {
 	result, err := ur.repo.Register(newUser)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "duplicate") {
-			return users.Users{}, errors.New("data telah terdaftar pada sistem")
-		}
-		return users.Users{}, errors.New("terjadi kesalahan pada sistem")
+		return users.Users{}, err
 	}
 
 	return result, nil
 }
 
 func (ul *userService) Login(email string, password string) (users.Users, error) {
-	if email == "" || password == "" {
-		return users.Users{}, errors.New("incorrect input data")
+	if email == "" {
+		return users.Users{}, errors.New("email harus di isi")
+	}
+
+	if password == "" {
+		return users.Users{}, errors.New("password harus di isi")
 	}
 
 	result, err := ul.repo.Login(email)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return users.Users{}, errors.New("data tidak ditemukan")
-		}
-		return users.Users{}, errors.New("terjadi kesalahan pada sistem")
+		return users.Users{}, err
 	}
 
 	err = ul.h.Compare(result.Password, password)
@@ -98,14 +108,3 @@ func (gu *userService) GetUserBySKill(idSkill uint, page, pageSize int) ([]users
 	return result, totalCount, nil
 }
 
-func (tk *userService) TakeWorker(idUser uint) (users.Users, error) {
-	result, err := tk.repo.TakeWorker(idUser)
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return users.Users{}, errors.New("user not found")
-		}
-		return users.Users{}, errors.New("error retrieving User by ID")
-	}
-
-	return result, nil
-}
