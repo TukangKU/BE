@@ -62,7 +62,7 @@ func (ur *userController) Register() echo.HandlerFunc {
 					strings.ReplaceAll(err.Error(), "", ""),
 					nil)
 			}
-			if strings.Contains(err.Error(), "duplicate entry") {
+			if strings.Contains(err.Error(), "Duplicate entry") {
 				return responses.PrintResponse(
 					c, http.StatusConflict,
 					"data sudah ada",
