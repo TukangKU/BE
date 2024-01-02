@@ -25,12 +25,12 @@ tags:
     description: Operations about Client
   - name: Workers
     description: Operations about Worker
-  - name: Skills
+  - name: Skill
     description: skills of worker 
   - name: Jobs
     description: Jobs operations
-  - name: Payments
-  - name: Notifications
+  - name: Transactions
+
 
 paths:
 
@@ -51,7 +51,7 @@ paths:
                 example:
                   message: "register successful"
                   data:
-                    user_id: 1
+          
                     role: "worker"
                     username: "bedul1"
                     email: "bedul@gmail.com"
@@ -84,9 +84,10 @@ paths:
                 example:
                   message: "login successful"
                   data:
+                    id: 1
                     username: "bedul1"
                     email: "bedul@gmail.com"
-                    image: "/image/user/foto1.png"
+                    role: "worker"
                     token: "ierwiehfsdfsnewoueyrwygejkdbfsejhsbdjbfse"
         "400":
           $ref: "#/components/responses/400"
@@ -123,13 +124,13 @@ paths:
               example:
                 message: "success"
                 data:
-                  user_id: 2
+                  id: 2
                   username: "joko999"
-                  name: "Joko Waluyo"
+                  nama: "Joko Waluyo"
                   email: "joko.binangun@gmail.com"
-                  phone: "085235375985"
-                  address: "Jl. Merdeka No.12"
-                  image: "/image/user/foto2.png"
+                  nohp: "085235375985"
+                  alamat: "Jl. Merdeka No.12"
+                  foto: "/image/user/foto2.png"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -163,13 +164,13 @@ paths:
               example:
                 message: "update user successful"
                 data:
-                  user_id: 2
+                  id: 2
                   username: "joko999"
-                  name: "Joko Waluyo"
+                  nama: "Joko Waluyo"
                   email: "joko.binangun@gmail.com"
-                  phone: "085235375985"
-                  address: "Jl. Merdeka No.12"
-                  image: "/image/user/foto2.png"
+                  nohp: "085235375985"
+                  alamat: "Jl. Merdeka No.12"
+                  foto: "/image/user/foto2.png"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -179,36 +180,7 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-    delete:
-      tags:
-        - Clients
-      summary: Delete client profile
-      description: This can only be done by the logged in client.
-      operationId: deleteClient
-      parameters:
-        - name: id
-          in: path
-          description: id of client that need to be deleted
-          required: true
-          schema:
-            type: integer
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              example:
-                message: "user successfully deleted"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
+   
 
 # worker
 
@@ -237,14 +209,27 @@ paths:
               example:
                 message: "success"
                 data:
-                  user_id: 1
+                  id: 1
                   username: "bedul1"
-                  name: "Bedul Markedul"
+                  nama: "Bedul Markedul"
                   email: "bedulganteng@gmail.com"
-                  phone: "0898456123745"
-                  address: "Jl. Aja Dulu"
-                  skills: {}
-                  image: "/image/user/foto2.png"
+                  nohp: "0898456123745"
+                  alamat: "Jl. Aja Dulu"
+                  skill: 
+                    - skill_id: 1
+                      skill_name: "Service AC"
+                    - skill_id: 2
+                      skill_name: "Cleaning"    
+                    - skill_id: 3
+                      skill_name: "Plumber"           
+                  foto: "/image/user/foto2.png"
+                  project_history: 
+                    - category: "Service AC"
+                      harga: 300000
+                    - category: "Cleaning"
+                      harga: 150000
+                    - category: "Plumber"
+                      harga: 175000
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -278,17 +263,20 @@ paths:
               example:
                 message: "update user successful"
                 data:
-                  user_id: 1
+                  id: 1
                   username: "bedul1"
-                  name: "bedul"
+                  nama: "Bedul Markedul"
+                  email: "bedulganteng@gmail.com"
+                  nohp: "0898456123745"
+                  alamat: "Jl. Aja Dulu"
                   skill: 
                     - skill_id: 1
                       skill_name: "Service AC"
                     - skill_id: 2
-                      skill_name: "Cleaning" 
-                  email: "bedul@gmail.com"
-                  phone: "0897894156452"
-                  image: "/image/user/foto1.png"
+                      skill_name: "Cleaning"    
+                    - skill_id: 3
+                      skill_name: "Plumber"           
+                  foto: "/image/user/foto2.png"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -298,36 +286,6 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
-    delete:
-      tags:
-        - Workers
-      summary: Delete worker profile
-      description: This can only be done by the logged in worker.
-      operationId: deleteWorker
-      parameters:
-        - name: id
-          in: path
-          description: id of worker that need to be deleted
-          required: true
-          schema:
-            type: integer
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              example:
-                message: "user successfully deleted"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
 
   /workers:
     get:
@@ -359,17 +317,10 @@ paths:
                 example:
                   message: "get worker by skill"
                   data: [{
-                    worker_id: 1,
-                    worker_name: "Bedul Markedul",
-                    address: "jln. aja dulu",
-                    jobs: [
-                      {job_date: "2023-08-19",
-                       category: "Service AC",
-                      },
-                      {job_date: "2023-07-30",
-                       category: "Cleaning",
-                      },
-                      ],
+                    id: 1,
+                    nama: "Bedul Markedul",
+                    alamat: "jln. aja dulu",
+                    total_project: 2,
                     skill: [
                      {skill_id: 1,
                       skill_name: "Service AC",},
@@ -377,27 +328,21 @@ paths:
                       skill_name: "Cleaning",}],
                     },
                     {
-                    worker_id: 3,
-                    worker_name: "Robert J Openheimer",
+                    id: 3,
+                    nama: "Robert J Openheimer",
                     alamat: "Jl. Manhattan Project",
-                    jobs: [
-                      {job_date: "2023-05-21",
-                       category: "Service AC",
-                      },
-                      {job_date: "2023-06-30",
-                       category: "CCTV",}
-                       ],
+                    total_project: 2,
                     skill: [
                       {skill_id: 1,
                       skill_name: "Service AC",},
                       {skill_id: 5,
                       skill_name: "CCTV",},],
-                      
                     },
                       ]
                   pagination:
                     page: 1
-                    totalTotal: 10
+                    pagesize: 10
+                    totalpages: 1
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -421,44 +366,10 @@ paths:
 # skill
 
   /skills:
-    post:
-      tags:
-        - Skills
-      summary: add skill 
-      requestBody:
-            $ref: "#/components/requestBodies/addSkill"
-      security:
-        - bearerAuth: []
-      responses:
-        "201":
-          description: "add skill" 
-          content:
-            application/json:
-              schema: 
-                type: object
-                example:
-                  message: "success add skill" 
-                  data: 
-                    skill_id: 1
-                    skill_name: "Service AC" 
-                    harga: 150000
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "404":
-          $ref: "#/components/responses/404"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
-      deprecated: true
-
-
 
     get:
       tags:
-        - Skills 
+        - Skill 
       summary: "get all skills" 
       security:
         - bearerAuth: []
@@ -496,6 +407,7 @@ paths:
 
 ##Jobs
   /jobs:
+
     post: 
       tags:
         - Jobs
@@ -515,52 +427,16 @@ paths:
                   message: "Job request created!" 
                   data: 
                     job_id: 1
+                    foto: "/image/user/foto2.png"
                     worker_name: "Bedul Markedul"
-                    client_name: "Peter Jordanson"
+                    nohp: "08212211123"
                     category: "Service AC"
                     start_date: "2023-12-14"
                     end_date: "2023-12-15"
-                    price: 
+                    harga: 0
                     deskripsi: "Sy mau pasang AC baru untuk satu kamar" 
-                    reply: []
                     status: "pending"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "404":
-          $ref: "#/components/responses/404"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
-    put: 
-      tags:
-        - Jobs
-      summary: "this operation enables negotiations between worker and client"
-      requestBody:
-          $ref: "#/components/requestBodies/putJobReq"
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: "success" 
-          content:
-            application/json:
-              schema: 
-                type: object
-                example: 
-                  message: "success" 
-                  data: 
-                    job_id: 1
-                    worker_name: "Bedul Markedul"
-                    client_name: "Peter Jordanson"
-                    category: "Service AC"
-                    start_date: "2023-12-14"
-                    end_date: "2023-12-15"
-                    price: 300000
-                    description: "Sy mau pasang AC baru untuk satu kamar" 
-                    status: "accepted"
+                    alamat: "Jl. Bersama"
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -579,47 +455,13 @@ paths:
       parameters:
         - in: query
           name: status 
-          required: true
+          required: false
           schema: 
             type: string
           example: "accepted"
-      security:
-        - bearerAuth: [] 
-      responses:
-        "200": 
-          description: "get all job by status" 
-          content:
-            application/json:
-              schema: 
-                type: object
-                example:
-                  message: "get all job by status" 
-                  data: 
-                  - worker_name: "bedul"
-                    start_date: "2023-12-15"
-                    end_date: "2023-12-16"
-                    price: 150000
-                    deskripsi: "ditunggu ya mas"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "404":
-          $ref: "#/components/responses/404"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
-
-  /jobs/{id}:
-    get:
-      tags:
-        - Jobs
-      summary: "get all job by jobs_id" 
-      parameters:
-        - in: path
-          name: id 
-          required: true
+        - in: query
+          name: page
+          required: false
           schema: 
             type: integer
           example: 1
@@ -635,60 +477,27 @@ paths:
                 example:
                   message: "get all job by status" 
                   data: 
-                  - worker_name: "bedul"
+                  - job_id: 10
+                    worker_name: "bedul"
+                    client_name: "Peter Jordanson"
                     start_date: "2023-12-15"
                     end_date: "2023-12-16"
-                    price: 150000
-                    deskripsi: "ditunggu ya mas"
-        "400":
-          $ref: "#/components/responses/400"
-        "401":
-          $ref: "#/components/responses/401"
-        "404":
-          $ref: "#/components/responses/404"
-        "405":
-          $ref: "#/components/responses/405"
-        "500":
-          $ref: "#/components/responses/500"
-    
-    ##Notifs
-  /notifications:
-    get:
-      tags:
-        - Notifications
-      summary: "get all notifications" 
-      parameters:
-        - in: path
-          name: status 
-          required: true
-          schema: 
-            type: string
-          example: "accepted"
-      security:
-        - bearerAuth: [] 
-      responses:
-        "200": 
-          description: "get all notifs by user_id:" 
-          content:
-            application/json:
-              schema: 
-                type: object
-                example:
-                  message: "get all job by status" 
-                  data: [
-                    {id: 56,
-                     message: "Request diubah oleh client: Peter Jordanson. Harap cek penawaran terkait."  ,
-                     created_at: 2023-12-08 16:40:20.92 +0700 +07,
-                    },
-                    {id: 55,
-                     message: "Request diubah oleh client: Peter Jordanson. Harap cek penawaran terkait."  ,
-                     created_at: 2023-12-08 16:38:20.92 +0700 +07,
-                    },
-                    {id: 45,
-                     message: Anda memiliki request baru!,
-                     created_at: 2023-12-08 16:35:20.92 +0700 +07,
-                    },
-                  ]
+                    harga: 300000
+                    category: "Service AC"
+                    status: "accepted"
+                  - job_id: 9
+                    worker_name: "jaya wijaya"
+                    client_name: "Peter Jordanson"
+                    start_date: "2023-12-15"
+                    end_date: "2023-12-16"
+                    harga: 175000
+                    category: "Plumber"
+                    status: "accepted"
+
+                  pagination:
+                    page: 1
+                    pagesize: 10
+                    totalpages: 1
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -700,6 +509,202 @@ paths:
         "500":
           $ref: "#/components/responses/500"
 
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: "get job by jobs_id" 
+      parameters:
+        - in: path
+          name: id 
+          required: true
+          schema: 
+            type: integer
+          example: 1
+      security:
+        - bearerAuth: [] 
+      responses:
+        "200": 
+          description: "get a job by id" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example:
+                  message: "success" 
+                  data: 
+                    job_id: 1
+                    category: "Service AC"
+                    worker_name: "bedul"
+                    client_name: "Peter Jordanson"
+                    foto: "/image/user/foto2.png"
+                    nohp: "085234555321"
+                    start_date: "2023-12-15"
+                    end_date: "2023-12-16"
+                    alamat: "Jl. Setiabudi"
+                    harga: 0
+                    deskripsi: "Mau pasang AC 2 mas"
+                    note_negosiasi: "" 
+                    status: "pending"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+    put: 
+      tags:
+        - Jobs
+      summary: "this operation enables negotiations between worker and client"
+      parameters:
+        - in: path
+          name: id 
+          required: true
+          schema: 
+            type: integer
+          example: 1
+      requestBody:
+          $ref: "#/components/requestBodies/putJobReq"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "success" 
+          content:
+            application/json:
+              schema: 
+                type: object
+                example: 
+                  message: "success" 
+                  data: 
+                    job_id: 1
+                    category: "Service AC"
+                    worker_name: "bedul"
+                    client_name: "Peter Jordanson"
+                    foto: "/image/user/foto2.png"
+                    nohp: "08212211123"
+                    start_date: "2023-12-15"
+                    end_date: "2023-12-16"
+                    alamat: "Jl. Setiabudi"
+                    harga: 300000
+                    deskripsi: "Mau pasang AC 2 mas"
+                    note_negosiasi: "boleh mas" 
+                    status: "negotiation"
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "404":
+          $ref: "#/components/responses/404"
+        "405":
+          $ref: "#/components/responses/405"
+        "500":
+          $ref: "#/components/responses/500"
+  # /takeworker/{id}:
+    
+  #   get:
+  #     tags:
+  #       - Jobs
+  #     summary: "get worker by id, for request jobs" 
+  #     parameters:
+  #       - in: path
+  #         name: id 
+  #         required: true
+  #         schema: 
+  #           type: integer
+  #         example: 1
+  #     security:
+  #       - bearerAuth: [] 
+  #     responses:
+  #       "200": 
+  #         description: "success" 
+  #         content:
+  #           application/json:
+  #             schema: 
+  #               type: object
+  #               example:
+  #                 message: "success get data by id" 
+  #                 data: 
+  #                   id: 1
+  #                   username: "test1"
+  #                   nama: "Bedul Markedul"
+  #                   email: "test1@gmail.com"
+  #                   nohp: "085235375985"
+  #                   alamat: "jln. aja dulu"
+  #                   skill: [
+  #                    {skill_id: 1,
+  #                     skill_name: "Service AC",},
+  #                     {skill_id: 2,
+  #                     skill_name: "Cleaning",}]
+  #                   jobhistory: [
+  #                     {worker_id: 1,
+  #                      client_id: 2,
+  #                      category: "Service AC",
+  #                      price: 150000,
+  #                      deskripsi: "Mau pasang AC Toshiba",
+  #                      status: "accepted"
+  #                     },
+  #                     {worker_id: 1,
+  #                      client_id: 3,
+  #                      category: "Plumber",
+  #                      price: 150000,
+  #                      deskripsi: "drainase saya tersumbat",
+  #                      status: "accepted",
+  #                     },
+  #                     {worker_id: 1,
+  #                      client_id: 2,
+  #                      category: "Plumber",
+  #                      price: 150000,
+  #                      deskripsi: "ada masalah sama saluran ke wastafel mas",
+  #                      status: "accepted",
+  #                     }
+  #                     ]
+  #                   total_job: 3
+  #       "400":
+  #         $ref: "#/components/responses/400"
+  #       "401":
+  #         $ref: "#/components/responses/401"
+  #       "404":
+  #         $ref: "#/components/responses/404"
+  #       "405":
+  #         $ref: "#/components/responses/405"
+  #       "500":
+  #         $ref: "#/components/responses/500"
+    
+  /transactions:
+    post:
+          tags:
+            - Transactions
+          summary: "Make a payment for a transaction" 
+          requestBody:
+           $ref: "#/components/requestBodies/postTransasction"
+          security:
+            - bearerAuth: [] 
+          responses:
+           "201":
+            description: "create job detail" 
+            content:
+              application/json:
+                schema: 
+                  type: object
+                  example: 
+                    message: "Transaction created!" 
+                    data: 
+                      url: "https://app.sandbox.midtrans.com/snap/v3/redirection/e8971e31-f63d-4ded-a738-c8835b97d357"
+           "400":
+              $ref: "#/components/responses/400"
+           "401":
+              $ref: "#/components/responses/401"
+           "404":
+              $ref: "#/components/responses/404"
+           "405":
+              $ref: "#/components/responses/405"
+           "500":
+              $ref: "#/components/responses/500"
 
 
 
@@ -713,7 +718,7 @@ components:
         password:
           type: string
       example:
-        email: bedul1
+        email: bedul1@gmail.com
         password: bedulganteng
 
     registerReq:
@@ -744,15 +749,15 @@ components:
       properties:
         username:
           type: string
-        name:
+        nama:
           type: string
         email:
           type: string
-        phone:
+        nohp:
           type: string
-        address:
+        alamat:
           type: string
-        image:
+        foto:
           type: string
           format: binary
 
@@ -761,7 +766,7 @@ components:
       properties:
         username:
           type: string
-        name:
+        nama:
           type: string
         skill:
           type: array
@@ -769,11 +774,11 @@ components:
             type: integer
         email:
           type: string
-        phone:
+        nohp:
           type: string
-        address:
+        alamat:
           type: string
-        image:
+        foto:
           type: string
           format: binary
 
@@ -792,43 +797,41 @@ components:
     addJobDetailReq:
       type: object
       properties:
-        worker_name:
-          type: string
-        category: 
-          type: string
-        startDate:
-          type: string
-          format: date
-        endDate: 
-          type: string
-          format: date
-        deskripsi: 
-          type: string
-
-    skill:
-      type: object
-      properties:
+        worker_id:
+          type: integer
         skill_id:
-         type: integer
-        skill_name: 
+          type: integer
+        start_date:
+          type: string
+          format: date
+        end_date: 
+          type: string
+          format: date
+        alamat:
+          type: string
+        deskripsi: 
           type: string
 
 
     putJobReq:
       type: object
       properties:
-        description:
+        note_negosiasi:
           type: string
-        price:
+        harga:
           type: integer
           example: 300000
         status: 
-          type: string
-          enum:
-          - accepted
-          - rejected
+          type: string  
 
-
+    postTransasction:
+      type: object
+      properties:
+        job_id:
+          type: integer
+        job_harga:
+          type: integer
+          example: 300000
 
   requestBodies:
     register:
@@ -866,6 +869,12 @@ components:
         application/json:
           schema: 
             $ref: "#/components/schemas/putJobReq"
+
+    postTransasction:  
+      content:
+        application/json:
+          schema: 
+            $ref: "#/components/schemas/postTransasction"
 
   securitySchemes:
     bearerAuth:

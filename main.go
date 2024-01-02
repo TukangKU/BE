@@ -43,17 +43,15 @@ func main() {
 	}
 	db.AutoMigrate(ur.UserModel{}, jr.JobModel{}, sr.SkillModel{}, &tr.Transaction{})
 
-	// config users features
 	enkrip := ek.New()
 	userRepo := ur.New(db)
 	userService := us.New(userRepo, enkrip)
 	userHandler := uh.New(userService, cld, ctx, param)
 
-	// config skill
 	skillRepo := sr.New(db)
 	skillService := ss.New(skillRepo)
 	skillHandler := sh.New(skillService)
-	// config jobs
+
 	jobRepo := jr.New(db)
 	jobServices := js.New(jobRepo)
 	jobHandler := jh.New(jobServices)
