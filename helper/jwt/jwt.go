@@ -15,7 +15,6 @@ func GenerateJWT(idUser uint, role string) (string, error) {
 	claim["iat"] = time.Now().UnixMilli()
 	claim["exp"] = time.Now().Add(time.Millisecond * 1).UnixMilli()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	// token := jwt.New(jwt.SigningMethodHS256)
 	strToken, err := token.SignedString([]byte("$!1gnK3yyy!!!"))
 	if err != nil {
 		return "", err
@@ -44,22 +43,6 @@ func ExtractToken(t *jwt.Token) (uint, error) {
 	return 0, errors.New("token tidak valid")
 }
 
-// func GenerateJWT(idUser uint, role string) (string, error) {
-// 	claims := jwt.MapClaims{
-// 		"id":   idUser,
-// 		"iat":  time.Now().Unix(),
-// 		"exp":  time.Now().Add(time.Hour).Unix(), // Set expiration to 1 hour
-// 		"role": role,
-// 	}
-
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-// 	strToken, err := token.SignedString([]byte("$!1gnK3yyy!!!"))
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-//		return strToken, nil
-//	}
 func ExtractTokenRole(t *jwt.Token) (string, error) {
 
 	expiredTime, err := t.Claims.GetExpirationTime()

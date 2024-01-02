@@ -64,7 +64,6 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 	if newJobs.Role != "client" {
 		return jobs.Jobs{}, errors.New("anda bukan client")
 	}
-	// cek spam job request
 	result := jq.db.Where("id = ?", newJobs.ClientID).First(&client)
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan client")
@@ -89,17 +88,6 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		return jobs.Jobs{}, err
 	}
 
-	//       "skill_id": 1,
-	//       "skill_name": "Service AC"
-	//       "skill_id": 2,
-	//       "skill_name": "Cleaning"
-	//       "skill_id": 3,
-	//       "skill_name": "Plumber"
-	//       "skill_id": 4,
-	//       "skill_name": "Decoration"
-	//       "skill_id": 5,
-	//       "skill_name": "CCTV
-
 	var skill = new(SkillModel)
 	result = jq.db.Where("id = ?", newJobs.SkillID).First(&skill)
 	if result.Error != nil {
@@ -120,8 +108,7 @@ func (jq *jobQuery) Create(newJobs jobs.Jobs) (jobs.Jobs, error) {
 		Status:     input.Status,
 		Address:    input.Address,
 	}
-	// fmt.Println(response.ID)
-	// fmt.Println(response.WorkerName)
+
 	return response, nil
 }
 
@@ -133,7 +120,6 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 
 	switch role {
 	case "worker":
-		// ngambil data worker dari id
 		var worker = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&worker)
 		if result.Error != nil {
@@ -142,7 +128,6 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 		if role != worker.Role {
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
-		// ngambil data
 		if err := jq.db.
 			Where("worker_id = ?", userID).Order("updated_at desc").
 			Find(&prePagination).
@@ -166,8 +151,6 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 		if len(*proses) == 0 {
 			return nil, int(totalCount), nil
 		}
-
-		// output processing
 
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
@@ -199,13 +182,11 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 		return *outputs, int(totalCount), nil
 	case "client":
 
-		// ngambil data client
 		var client = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&client)
 		if result.Error != nil {
 			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan client, 404")
 		}
-		// cek role input dan role di repo
 		if role != client.Role {
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
@@ -219,7 +200,6 @@ func (jq *jobQuery) GetJobs(userID uint, role string, page int, pagesize int) ([
 			}
 			return nil, 0, errors.New("server error")
 		}
-		// proses
 		if err := jq.db.Where("client_id = ?", userID).Order("updated_at desc").
 			Offset(offset).
 			Limit(pagesize).
@@ -271,17 +251,14 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 	offset := (page - 1) * pagesize
 	switch role {
 	case "worker":
-		// ngambil worker
 		var worker = new(UserModel)
 		result := jq.db.Where("id = ?", userID).First(&worker)
 		if result.Error != nil {
 			return []jobs.Jobs{}, 0, errors.New("tidak ditemukan worker, 404")
 		}
-		// validasi input dan proses
 		if role != worker.Role {
 			return []jobs.Jobs{}, 0, errors.New("sepertinya anda salah memasukkan token")
 		}
-		// proses data
 		if err := jq.db.
 			Where("worker_id = ? AND status = ?", userID, status).
 			Find(&prePagination).
@@ -304,7 +281,6 @@ func (jq *jobQuery) GetJobsByStatus(userID uint, status string, role string, pag
 			return nil, int(totalCount), nil
 		}
 
-		// proses output
 		var outputs = new([]jobs.Jobs)
 		for _, element := range *proses {
 			var output = new(jobs.Jobs)
@@ -419,7 +395,6 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 		return jobs.Jobs{}, errors.New("tidak ditemukan worker, 404")
 	}
 
-	// foto
 	if role == "client" {
 		output.Foto = worker.Foto
 		output.NoHp = worker.NoHp
@@ -467,9 +442,7 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	if update.Status == "accepted" {
 		update.Price = 0
 	}
-	// fmt.Println(update, "before update  .repo")
-	// fmt.Println(proses, "before update. repo")
-	// cek id updater
+
 	if update.Role == "client" {
 		if update.ClientID != proses.ClientID {
 			return jobs.Jobs{}, errors.New("id client tidak cocok, 403")
@@ -489,13 +462,11 @@ func (jq *jobQuery) UpdateJob(update jobs.Jobs) (jobs.Jobs, error) {
 	if update.Status != "" {
 		proses.Status = update.Status
 	}
-	// proses
 	result = jq.db.Save(&proses)
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("eror saat menyimpan data, 500")
 	}
 
-	// fmt.Println(proses, "after update. repo")
 	var output = new(jobs.Jobs)
 	var client = new(UserModel)
 	result = jq.db.Where("id = ?", proses.ClientID).First(&client)

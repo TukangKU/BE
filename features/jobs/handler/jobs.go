@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -24,7 +23,6 @@ func New(s jobs.Service) jobs.Handler {
 	}
 }
 
-// create jobs
 func (jc *jobsController) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
@@ -48,7 +46,6 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		inputProcess.Address = input.Address
 
 		result, err := jc.srv.Create(*inputProcess)
-		// error nya belum
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				c.Logger().Error("ERROR Register, explain:", err.Error())
@@ -84,16 +81,13 @@ func (jc *jobsController) Create() echo.HandlerFunc {
 		response.Status = result.Status
 		response.Address = result.Address
 		response.NoHp = result.NoHp
-		// fmt.Println(result, "handler")
 		return responses.PrintResponse(c, http.StatusCreated, "success create data", response)
 
 	}
 }
 
-// get jobs with and without query
 func (jc *jobsController) GetJobs() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// get role
 		userRole, err := jwt.ExtractTokenRole(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
@@ -103,7 +97,6 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 
-		// get uid
 		userID, err := jwt.ExtractToken(c.Get("user").(*golangjwt.Token))
 		if err != nil {
 			c.Logger().Error("ERROR Register, explain:", err.Error())
@@ -119,7 +112,6 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 
-		// get queries
 		status := c.QueryParams().Get("status")
 		page, err := strconv.Atoi(c.QueryParam("page"))
 		if err != nil || page <= 0 {
@@ -131,7 +123,6 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			pageSize = 10
 		}
 
-		// proses
 		result, count, err := jc.srv.GetJobs(userID, status, userRole, page, pageSize)
 		if err != nil {
 			c.Logger().Error("ERROR Database, explain:", err.Error())
@@ -152,13 +143,6 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			return responses.PrintResponse(c, statusCode, message, nil)
 		}
 		totalPages := int(math.Ceil(float64(count) / float64(pageSize)))
-		// if page > totalPages {
-		// 	var statusCode = http.StatusNotFound
-		// 	var message = "index out of bounds"
-
-		// 	return responses.PrintResponse(c, statusCode, message, nil)
-		// }
-		// proses response
 
 		var respon = new([]GetJobsResponse)
 		for _, element := range result {
@@ -221,7 +205,6 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 			})
 		}
 
-		// respons
 		var response = new(GetJobResponse)
 
 		response.ID = result.ID
@@ -285,17 +268,14 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 
 		if err != nil {
 			if strings.Contains(err.Error(), "tidak ditemukan") {
-				fmt.Println(err.Error())
 				return c.JSON(http.StatusNotFound, map[string]interface{}{
 					"message": "data tidak ditemukan",
 				})
 			} else if strings.Contains(err.Error(), "403") {
-				fmt.Println(err.Error())
 				return c.JSON(http.StatusForbidden, map[string]interface{}{
 					"message": "data tidak bisa diubah dengan nilai tersebut",
 				})
 			}
-			fmt.Println(err.Error())
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 				"message": "ada masalah di server",
 			})
@@ -315,7 +295,7 @@ func (jc *jobsController) UpdateJob() echo.HandlerFunc {
 		response.Note = result.Note
 		response.Status = result.Status
 		response.NoHp = result.NoHp
-		// fmt.Println(result, "handler")
+
 		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 
 	}
