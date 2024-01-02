@@ -39,7 +39,6 @@ func New(db *gorm.DB) skill.Repository {
 	}
 }
 
-// AddSkill implements skill.Repository.
 func (as *SkillQuery) AddSkill(newSkill skill.Skills) (skill.Skills, error) {
 	var inputData = new(SkillModel)
 	inputData.NamaSkill = newSkill.NamaSkill
@@ -54,20 +53,17 @@ func (as *SkillQuery) AddSkill(newSkill skill.Skills) (skill.Skills, error) {
 
 }
 
-// ShowSkill implements skill.Repository.
 func (sq *SkillQuery) ShowSkill() ([]skill.Skills, error) {
 	var skills []SkillModel
 	if err := sq.db.Find(&skills).Error; err != nil {
 		return nil, err
 	}
 
-	// Transform the database model to the desired Skills type.
 	var result []skill.Skills
 	for _, s := range skills {
 		result = append(result, skill.Skills{
 			ID:        s.ID,
 			NamaSkill: s.NamaSkill,
-			// Add other fields if needed
 		})
 	}
 

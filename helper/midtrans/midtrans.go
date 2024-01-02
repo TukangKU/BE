@@ -45,8 +45,6 @@ func MidtransCreateToken(orderID int, TotalPrice int, namaCustomer string, email
 func MidtransStatus(orderID string) (Status string) {
 	var c = coreapi.Client{}
 	c.New(config.InitConfig().MIDTRANS_SERVER_KEY, midtrans.Sandbox)
-	// id := strconv.Itoa(orderID)
-	// orderId := "YOUR-ORDER-ID-" + id
 
 	transactionStatusResp, e := c.CheckTransaction(orderID)
 	if e != nil {
