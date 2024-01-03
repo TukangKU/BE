@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	job "tukangku/features/jobs/repository"
 	"tukangku/features/transaction"
@@ -60,9 +59,6 @@ func (at *TransactionQuery) AddTransaction(userID uint, JobID uint, JobPrice uin
 
 	midtrans := midtrans.MidtransCreateToken(int(input.ID), int(JobPrice), usr.Nama, usr.Email, jb.CategoryModel.NamaSkill, usr.NoHp)
 
-	fmt.Println("Redirect URL:", midtrans.RedirectURL)
-	fmt.Println("Token:", midtrans.Token)
-
 	input.Url = midtrans.RedirectURL
 	input.Token = midtrans.Token
 	if err := at.db.Save(&input).Error; err != nil {
@@ -93,7 +89,6 @@ func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.T
 		return nil, err
 	}
 
-	
 	if transactions.ID == 0 {
 		err := errors.New("no transactions")
 		return nil, err
@@ -116,7 +111,6 @@ func (ct *TransactionQuery) CheckTransaction(transactionID uint) (*transaction.T
 func (cb *TransactionQuery) CallBack(noInvoice string) (*transaction.TransactionList, error) {
 	var transactions Transaction
 	if err := cb.db.Table("transactions").Where("no_invoice = ?", noInvoice).Find(&transactions).Error; err != nil {
-		fmt.Println("transactions = ", transactions)
 		return &transaction.TransactionList{}, err
 	}
 

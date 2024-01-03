@@ -221,6 +221,7 @@ func (jc *jobsController) GetJob() echo.HandlerFunc {
 		response.Note = result.Note
 		response.Status = result.Status
 		response.NoHp = result.NoHp
+		response.StatusPay = result.StatusPayment
 		return responses.PrintResponse(c, http.StatusOK, "success create data", response)
 	}
 }
