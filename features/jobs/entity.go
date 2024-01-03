@@ -20,6 +20,7 @@ type Jobs struct {
 	Status     string `json:"status"`
 	Address    string `json:"alamat"`
 	NoHp       string `json:"nohp"`
+	StatusPayment string `json:"status_payment"`
 }
 
 type Handler interface {

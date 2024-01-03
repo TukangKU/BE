@@ -57,4 +57,5 @@ type GetJobResponse struct {
 	Deskripsi  string `json:"deskripsi"`
 	Note       string `json:"note_negosiasi"`
 	Status     string `json:"status"`
+	StatusPay  string `json:"status_payment"`
 }
