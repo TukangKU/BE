@@ -377,8 +377,8 @@ func (gu *userController) GetUserBySKill() echo.HandlerFunc {
 				"data": responsess,
 				"pagination": map[string]interface{}{
 					"page":       page,
-					"pagesize":   pageSize,
-					"totalpages": totalPages,
+					"page_size":   pageSize,
+					"total_pages": totalPages,
 				},
 			})
 	}

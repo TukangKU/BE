@@ -167,8 +167,8 @@ func (jc *jobsController) GetJobs() echo.HandlerFunc {
 			"data":    respon,
 			"pagination": map[string]interface{}{
 				"page":       page,
-				"pagesize":   pageSize,
-				"totalPages": totalPages},
+				"page_size":   pageSize,
+				"total_pages": totalPages},
 		})
 	}
 }
