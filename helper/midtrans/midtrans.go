@@ -1,7 +1,6 @@
 package midtrans
 
 import (
-	"fmt"
 	"strconv"
 	"tukangku/config"
 
@@ -38,7 +37,6 @@ func MidtransCreateToken(orderID int, TotalPrice int, namaCustomer string, email
 	}
 
 	snapResp, _ := s.CreateTransaction(req)
-	fmt.Println("sanpresponse = ", snapResp)
 	return snapResp
 }
 

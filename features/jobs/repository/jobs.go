@@ -23,6 +23,7 @@ type JobModel struct {
 	Status        string
 	Address       string
 	NoteNego      string
+	StatusPay     Transaction `gorm:"foreignKey:Status;"`
 }
 
 type UserModel struct {
@@ -48,6 +49,18 @@ type SkillModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Jobs      []JobModel     `gorm:"foreignKey:Category"`
 }
+
+type Transaction struct {
+	gorm.Model
+	NoInvoice  string
+	JobID      uint
+	UserID     uint
+	TotalPrice uint
+	Status     string
+	Token      string
+	Url        string
+}
+
 type jobQuery struct {
 	db *gorm.DB
 }
@@ -409,6 +422,15 @@ func (jq *jobQuery) GetJob(jobID uint, role string) (jobs.Jobs, error) {
 	if result.Error != nil {
 		return jobs.Jobs{}, errors.New("tidak ditemukan client")
 	}
+
+	var statusPay = new(Transaction)
+	result = jq.db.Where("job_id = ?", proses.ID).First(&statusPay)
+	if result.Error != nil {
+		output.StatusPayment = ""
+	}
+
+	output.StatusPayment = statusPay.Status
+
 	output.Category = skill.NamaSkill
 
 	output.WorkerName = worker.Nama
